@@ -4,11 +4,14 @@
 
 - frontend
 
-  | 基础                        | 工具                              |
-  | --------------------------- | --------------------------------- |
-  | [HTML](notes/CSS/HTML.md)   | [React](notes/React/react.md)     |
-  | [CSS](notes/CSS/CSS基础.md) | [Node.js](notes/Nodejs/nodejs.md) |
-  | [JavaSript](notes/JS/JS.md) |                                   |
+  - 基础
+
+    - [HTML](notes/CSS/HTML.md)
+    - [CSS](notes/CSS/CSS基础.md)
+    - [JavaSript](notes/JS/JS.md)
+  - 工具
+    - [React](notes/React/react.md)
+  - [Node.js](notes/Nodejs/nodejs.md)
 
 - 数据结构与算法
 
