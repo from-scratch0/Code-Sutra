@@ -2,7 +2,6 @@
 - [Data Structures & Algorithm](#data-structures--algorithm)
 - [LeetCode](#leetcode)
     - [<a name="arrays">Arrays</a>](#arrays)
-        - [283. Move Zeros](#283-move-zeros)
     - [<a name="strings">Strings</a>](#strings)
     - [<a name="linkedlist">Linked List</a>](#linked-list)
     - [<a name="bst">Binary Search Trees</a>](#binary-search-trees)
@@ -28,27 +27,13 @@
 
 # LeetCode
 
-| Arrays                    | Strings                       | Linked List                    |
-| ------------------------- | ----------------------------- | ------------------------------ |
-| [283. Move Zeros](283.md) | <a href="#strings">字符串</a> | <a href="#linkedlist">链表</a> |
-
-| Binary Search Trees           | Binary Trees             | Graphs                   |
-| ----------------------------- | ------------------------ | ------------------------ |
-| <a href="#bst">二叉搜索树</a> | <a href="#bt">二叉树</a> | <a href="#graphs">图</a> |
-
-| Heaps                   | Stacks                   |
-| ----------------------- | ------------------------ |
-| <a href="#heaps">堆</a> | <a href="#stacks">栈</a> |
-
-| Searching                     | Sorting                     | Dynamic Programming             |
-| ----------------------------- | --------------------------- | ------------------------------- |
-| <a href="#searching">查找</a> | <a href="#sorting">排序</a> | <a href="#dynamic">动态规划</a> |
-
-
-
 ### <a name="arrays">Arrays</a>
 
-#####  [283. Move Zeros](283.md)
+|  ID  | Title                                               | Difficulty |
+| :--: | :-------------------------------------------------- | :--------: |
+|  26  | [Remove Duplicates from Sorted Array](src/26.md)    |    Easy    |
+|  80  | [Remove Duplicates from Sorted Array II](src/80.md) |   Medium   |
+| 283  | [Move Zeros](src/283.md)                            |    Easy    |
 
 
 ### <a name="strings">Strings</a>
