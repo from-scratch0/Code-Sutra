@@ -40,6 +40,12 @@
 
 ### <a name="linkedlist">Linked List</a>
 
+|  ID  | Title                                          | Difficulty |
+| :--: | ---------------------------------------------- | :--------: |
+| 160  | [Intersection of Two Linked Lists](src/160.md) |    Easy    |
+
+
+
 ### <a name="bst">Binary Search Trees</a>
 
 ### <a name="bt">Binary Trees</a>
