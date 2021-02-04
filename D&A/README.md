@@ -32,6 +32,7 @@
 |  ID  | Title                                               | Difficulty |
 | :--: | :-------------------------------------------------- | :--------: |
 |  26  | [Remove Duplicates from Sorted Array](src/26.md)    |    Easy    |
+|  27  | [Remove Element](src/27.md)                         |    Easy    |
 |  80  | [Remove Duplicates from Sorted Array II](src/80.md) |   Medium   |
 | 283  | [Move Zeros](src/283.md)                            |    Easy    |
 
@@ -40,9 +41,29 @@
 
 ### <a name="linkedlist">Linked List</a>
 
+|  ID  | Title                                          | Difficulty |
+| :--: | ---------------------------------------------- | :--------: |
+|  21  | [Merge Two Sorted Lists](src/21md)             |    Easy    |
+| 160  | [Intersection of Two Linked Lists](src/160.md) |    Easy    |
+| 206  | [Reverse Linked List](src/206.md)              |    Easy    |
+
+
+
 ### <a name="bst">Binary Search Trees</a>
 
 ### <a name="bt">Binary Trees</a>
+
+|  ID  | Title                                          | Difficulty |
+| :--: | ---------------------------------------------- | :--------: |
+| 105  | [从前序与中序遍历序列构造二叉树](src/105.md)   |   Medium   |
+| 106  | [从中序与后序遍历序列构造二叉树](src/106.md)   |   Medium   |
+| 114  | [二叉树展开为链表](src/114.md)                 |   Medium   |
+| 116  | [填充每个节点的下一个右侧节点指针](src/116.md) |   Medium   |
+| 226  | [翻转二叉树](src/226.md)                       |    Easy    |
+| 236  | [二叉树的最近公共祖先](src/236.md)             |   Medium   |
+| 654  | [最大二叉树](src/654.md)                       |   Medium   |
+
+
 
 ### <a name="graphs">Graphs</a>
 
