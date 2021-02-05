@@ -44,6 +44,9 @@
 |  ID  | Title                                          | Difficulty |
 | :--: | ---------------------------------------------- | :--------: |
 |  21  | [Merge Two Sorted Lists](src/21md)             |    Easy    |
+|  92  | [反转链表2](src/92.md)                         |   Medium   |
+| 141  | [环形链表](src/141.md)                         |    Easy    |
+| 142  | [环形链表2](src/142.md)                        |   Medium   |
 | 160  | [Intersection of Two Linked Lists](src/160.md) |    Easy    |
 | 206  | [Reverse Linked List](src/206.md)              |    Easy    |
 
