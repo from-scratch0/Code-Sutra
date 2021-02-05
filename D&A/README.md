@@ -43,13 +43,9 @@
 
 |  ID  | Title                                          | Difficulty |
 | :--: | ---------------------------------------------- | :--------: |
-<<<<<<< HEAD
 |  21  | [Merge Two Sorted Lists](src/21md)             |    Easy    |
 | 160  | [Intersection of Two Linked Lists](src/160.md) |    Easy    |
 | 206  | [Reverse Linked List](src/206.md)              |    Easy    |
-=======
-| 160  | [Intersection of Two Linked Lists](src/160.md) |    Easy    |
->>>>>>> 2b1e479469e4245134cb647d487a016a0afb948a
 
 
 
