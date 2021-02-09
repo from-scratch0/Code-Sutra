@@ -29,26 +29,36 @@
 
 ### <a name="arrays">Arrays</a>
 
-|  ID  | Title                                               | Difficulty |
-| :--: | :-------------------------------------------------- | :--------: |
-|  26  | [Remove Duplicates from Sorted Array](src/26.md)    |    Easy    |
-|  27  | [Remove Element](src/27.md)                         |    Easy    |
-|  80  | [Remove Duplicates from Sorted Array II](src/80.md) |   Medium   |
-| 283  | [Move Zeros](src/283.md)                            |    Easy    |
-
+|  ID  | Title                                                   | Difficulty |
+| :--: | :------------------------------------------------------ | :--------: |
+|  26  | [Remove Duplicates from Sorted Array](src/26.md)        |    Easy    |
+|  27  | [Remove Element](src/27.md)                             |    Easy    |
+|  34  | [在排序数组中查找元素的第一个和最后一个位置](src/34.md) |   Medium   |
+|  80  | [Remove Duplicates from Sorted Array II](src/80.md)     |   Medium   |
+| 167  | [两数之和2 - 输入有序数组](src/167.md)                  |    Easy    |
+| 283  | [Move Zeros](src/283.md)                                |    Easy    |
+| 704  | [二分查找](src/704.md)                                  |    Easy    |
 
 ### <a name="strings">Strings</a>
+
+|  ID  | Title                    | Difficulty |
+| :--: | ------------------------ | :--------: |
+| 344  | [反转字符串](src/344.md) |    Easy    |
+
+
 
 ### <a name="linkedlist">Linked List</a>
 
 |  ID  | Title                                          | Difficulty |
 | :--: | ---------------------------------------------- | :--------: |
+|  19  | [删除链表的倒数第N个节点](src/19.md)           |   Medium   |
 |  21  | [Merge Two Sorted Lists](src/21md)             |    Easy    |
 |  92  | [反转链表2](src/92.md)                         |   Medium   |
 | 141  | [环形链表](src/141.md)                         |    Easy    |
 | 142  | [环形链表2](src/142.md)                        |   Medium   |
 | 160  | [Intersection of Two Linked Lists](src/160.md) |    Easy    |
 | 206  | [Reverse Linked List](src/206.md)              |    Easy    |
+| 876  | [链表的中间结点](src/876.md)                   |    Easy    |
 
 
 
