@@ -4,18 +4,25 @@
     // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "Launch Program",
+        "program": "${workspaceFolder}/notes/Nodejs/express/express/test/3.use.js",
+        "skipFiles": [
+            "<node_internals>/**"
+        ]
+    },
+        
         
         {
             "name": "Attach",
             "port": 9229,
             "request": "attach",
-            "type": "pwa-node"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "启动程序",
-            "program": "${workspaceFolder}\\notes\\Nodejs\\http\\server.js"
+            "type": "pwa-node",
+            "trace": true
+
+            
         }
     ]
 }

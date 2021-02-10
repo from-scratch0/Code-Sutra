@@ -2,7 +2,7 @@
 
 Express是一个小巧且灵活的Node.js Web应用框架，可用于开发单页、多页和混合Web应用
 
-[模拟Express](express/index.js)
+[模拟Express](appExpress/express/index.js)
 
 ## 应用
 
@@ -12,7 +12,7 @@ npm i express -S
 
 ### 路由 get post all
 
-[get、post、all](./get.js)
+[get、post、all](appExpress/get.js)
 
 ### 中间件
 
@@ -23,7 +23,7 @@ npm i express -S
 - 可以根据路径来区分返回执行不同的中间件
 - 中间件的路径只要前缀匹配就可以
 
-[**使用方法**](./middle.js)
+[**使用方法**](appExpress/middle.js)
 
 ### 获取参数和查询字符串
 
@@ -33,10 +33,38 @@ npm i express -S
 
 **实现**：系统内置中间件
 
-[**使用方法**](./param.js)
+[**使用方法**](appExpress/param.js)
 
 ### 获取params参数
 
 ```req.params```匹配到的所有路径参数组成的对象，用于批量处理路径参数
 
-[**使用方法**](./params.js)
+[**使用方法**](appExpress/params.js)
+
+
+
+## 封装
+
+### 构建基本服务器
+
+- 创建```express```模块，导出一个函数，执行函数可以返回一个app对象
+- app对象里定义get和listen方法
+- get方法用于往路由里添加一条路由规则
+- 初始化router对象保存所有的路由
+- listen方法用于启动一个HTTP服务器并指定处理函数
+
+### 封装Router
+
+- app从字面量变为```Application```类
+- 丰富HTTP请求方法
+- 封装```Router```
+- 路径一样的路由整合为一组，引入```Layer```的概念
+- 增加路由控制，支持```next```方法，并增加错误捕获功能
+- 执行```Router.handle```的时候传入```out```参数
+
+### 实现中间件
+
+### req.params
+
+### 模板引擎
+
