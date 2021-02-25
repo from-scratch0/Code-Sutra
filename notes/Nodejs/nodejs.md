@@ -188,6 +188,34 @@ c.add(() => {console.log('ok')});
 
 Node.js中用于实现各种事件处理的```event```模块中，定义了[```EventEmitter```类](EventEmitter.js)，可能触发事件的对象都是继承自```EventEmitter```类的子类实例对象
 
+```javascript
+var url = "http://mylogger.io/log";
+
+const EventEmitter = require("events");
+
+class Logger extends EventEmitter {
+  log(message) {
+    // Send an HTTP request
+    console.log(message);
+
+    // Raise an event
+    this.emit("messageLogged", { id: 1, url: "http://" });
+  }
+}
+
+module.exports = Logger;
+```
+
+```javascript
+const EventEmitter = require("events");
+const Logger = require("./logger");
+const logger = new Logger();
+// Register a listener
+logger.on("messageLogged", (arg) => console.log(arg)); // e, eventArg
+// Raise an event
+logger.log("message");
+```
+
 
 
 ### 5. ```util```
@@ -202,7 +230,39 @@ util.isUndefined();
 
 
 
-### 6. node断点调试
+### 6. os
+
+```javascript
+const os = require("os");
+var total = os.totalmem();
+var free = os.freemem();
+```
+
+
+
+### 7. npm
+
+```
+// 包更新
+"^4.X.X"
+"~4.1.X"
+"4.1.1"
+
+// 查看node_modules
+npm list
+npm list --depth=0
+
+npm view mongoose dependencies
+npm view mongoose versions
+
+npm outdated
+npm -g outdated
+npm update
+```
+
+
+
+### 8. node断点调试
 
 V8提供了强大的调试器，可以通过TCP协议从外部访问
 
@@ -240,7 +300,7 @@ Node.js提供了内建调试器，在代码中加入```debugger```标签，相�
 
 #### 1.1 Node中的common.js
 
-- 在Node.js中，模块划分所有功能，每个单独的文件都是一个模块
+- 在Node.js中，模块划分所有功能，每个单独的文件都是一个```module```
 - 通过```require```方法实现模块间的依赖管理         
 
 **module.js**
@@ -256,7 +316,7 @@ Node.js提供了内建调试器，在代码中加入```debugger```标签，相�
 从模块外部访问模块内的成员：
 
 - 使用exporrts对象
-- 使用```module.exports```导出引用类型
+- 使用```module.exports```导出引用类型（可以导出对象或单一函数）
 
 ```javascript
 // moduleName.js
@@ -418,7 +478,7 @@ cosole.log(module.paths);
 
 
 
-## 五、Buffer
+## 五、Buffer 全局对象
 
 缓冲区Buffer是暂时存放输入输出数据的一段内存
 
@@ -711,6 +771,9 @@ fs.watchFile('', function(newStat, prevStat) {
 
 ```javascript
 let path = require('path');
+
+// 解析目录
+let pathObj = path.parse(__filename); // { root, dir, base, ext, name }
 
 // 连接两个目录
 path.join('a', 'b');
@@ -1309,6 +1372,19 @@ npm i user-agent-parser -S
 ### 1. ```process```进程
 
 #### 进程对象属性、方法、事件
+
+```javascript
+const port = process.env.PORT || 3000;
+```
+
+```javascript
+console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`app: ${app.get('env')}`);
+
+export NODE_ENV=production
+```
+
+
 
 **memoryUsage()**
 

@@ -1,3 +1,4 @@
+// const EventEmitter = require("events");
 function EventEmitter() {
     this.events = {}; // 所有的事件监听函数保存在此对象
     this._maxListeners = 5; // 指定给一个时间类型增加的监听函数数量最多有多少个

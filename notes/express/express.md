@@ -23,6 +23,20 @@ npm i express -S
 - 可以根据路径来区分返回执行不同的中间件
 - 中间件的路径只要前缀匹配就可以
 
+```javascript
+const express = require('express');
+const app = express();
+
+// 内建中间件
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public'));
+
+// 第三方中间件
+app.use(helmet());
+app.use(morgan('tiny'));
+```
+
 [**使用方法**](appExpress/middle.js)
 
 ### 获取参数和查询字符串
@@ -67,4 +81,11 @@ npm i express -S
 ### req.params
 
 ### 模板引擎
+
+```javascript
+//views是用来设置模板存放根目录
+app.set('views', path.resolve('views'));
+//设置模板引擎 ,如果render的没有指定模板后台名，会以这个作为后缀名
+app.set('view engine', 'pug');
+```
 
