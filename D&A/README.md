@@ -12,6 +12,7 @@
     - [<a name="searching">Searching</a>](#searching)
     - [<a name="sorting">Sorting</a>](#sorting)
     - [<a name="dynamic">Dynamic Programming</a>](#dynamic-programming)
+    - [<a name="dfs">回溯算法</a>](#回溯算法)
 # Data Structures & Algorithm
 
 | 数据结构         | 实现 | 应用 |
@@ -22,6 +23,10 @@
 | 栈 Stacks        |      |      |
 | 树 Trees         |      |      |
 | 图 Graphs        |      |      |
+
+
+
+
 
 
 
@@ -46,6 +51,7 @@
 |  3   | [无重复字符的最长子串](src/3.md)         |   Medium   |
 |  76  | [最小覆盖子串](src/76.md)                |    Hard    |
 | 344  | [反转字符串](src/344.md)                 |    Easy    |
+| 345  | [反转字符串中的元音字母](src/345.md)     |    Easy    |
 | 438  | [找到字符串中所有字母异位词](src/438.md) |   Medium   |
 | 567  | [字符串的排列](src/567.md)               |   Medium   |
 
@@ -94,3 +100,10 @@
 ### <a name="sorting">Sorting</a>
 
 ### <a name="dynamic">Dynamic Programming</a>
+
+### <a name="dfs">回溯算法</a>
+
+| ID   | Title               | Difficulty |
+| ---- | ------------------- | ---------- |
+| 46   | [全排列](src/46.md) | Medium     |
+
