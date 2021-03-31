@@ -2,7 +2,7 @@
 
 ## 异步
 
-异步，简单来说就是一个任务分成两段，先执行第一段，然后转而执行其他任务，做好了准备灾回头执行第二段
+异步，简单来说就是一个任务分成两段，先执行第一段，然后转而执行其他任务，做好了准备再回头执行第二段
 
 ### 高阶函数
 
@@ -23,7 +23,7 @@
 
 #### 回调地域
 
-在需要多个操作的时候，会导致多个回调函数嵌套，导致代码不够直观
+在需要多个操作的时候，如异步返回值又依赖另一个异步返回值，会导致多个回调函数嵌套，导致代码不够直观
 
 #### 并行结果
 
@@ -31,7 +31,7 @@
 
 
 
-### 回调callback
+### 回调`callback`
 
 所谓回调函数，就是把任务的第二段单独写在一个函数里，等重新执行该任务时，就直接调用这个函数
 
@@ -300,7 +300,7 @@ run(g);
 
 ```javascript
 const readFilePromise = (filename) => {
-  returnnewPromise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     fs.readFile(filename, (err, data) => {
       if(err) {
         reject(err);
@@ -366,15 +366,88 @@ co(g).then(res =>{
 
 **`async`** 是一个通过异步执行并隐式**返回 Promise 作为结果**的函数
 
+```javascript
+async function func() {
+  return 100;
+}
+console.log(func());
+// Promise {<resolved>: 100}
+```
+
 **`await`**
 
+以一段代码为例：
 
+```javascript
+async function test() {
+  console.log(100);
+  let x = await 200;
+  console.log(x);
+  console.log(200);
+}
+console.log(0);
+test();
+console.log(300);
+```
 
-`async/await`利用**协程和`Promise`**实现了同步方式编写异步代码的效果
+首先代码同步执行，打印出`0`，然后将`test`压入执行栈，打印出`100`, 下面注意了，遇到了关键角色**await**。
+
+放个慢镜头:
+
+```javascript
+await 100;
+```
+
+1. **被 JS 引擎转换成一个 Promise**:
+
+```javascript
+let promise = new Promise((resolve,reject) => {
+   resolve(100);
+});
+```
+
+这里调用了 resolve，resolve的任务**进入微任务队列**
+
+然后，JS 引擎将暂停当前协程的运行，把线程的执行权交给父协程
+
+2. 回到父协程中，父协程的第一件事情就是**对`await`返回的`Promise`调用`then`, 来监听**这个 Promise 的状态改变 
+
+```javascript
+promise.then(value => {
+  // 相关逻辑，在resolve执行之后来调用(执行next方法)
+    // 3. 将线程的执行权交给test协程
+    // 4. 把value值传递给test协程
+})
+```
+
+然后往下执行，打印出`300`。
+
+根据`EventLoop`机制，当前主线程的宏任务完成，现在检查微任务队列，发现还有一个Promise的 resolve，执行，现在父协程在`then`中传入的回调执行
+
+3. **将线程的执行权交给`async`函数协程**（`promise.then`执行next方法）
+
+4. **把value值传递给test协程**
+
+   test 接收到父协程传来的200，赋值给 a ，然后依次执行后面的语句，打印`200`、`200`。
+
+`async/await`**由 generator + yield 控制流程 + promise 实现回调**，实现了同步方式编写异步代码的效果
 
 > `Generator`是对协程的一种实现，虽然语法简单，但引擎在背后做了大量的工作。用`async/await`写出的代码也更加优雅、美观，相比于之前的`Promise`不断调用then的方式，语义化更加明显，相比于`co + Generator`性能更高，上手成本也更低
 
 
 
 **`forEach` 中用 await** 
+
+利用`for...of`就能轻松解决
+
+```javascript 
+async function test() {
+  let arr = [4, 2, 1]
+  for(const item of arr) {
+	const res = await handle(item)
+	console.log(res)
+  }
+	console.log('结束')
+}
+```
 

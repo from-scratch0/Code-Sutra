@@ -1,8 +1,8 @@
 # 手动实现
 
-### 3. 手动实现instanceof
+### instanceof
 
-核心: 原型链的向上查找。
+核心：原型链的向上查找，右边变量的原型prototype在左边变量的原型链上
 
 ```javascript
 function myInstanceof(left, right) {    
@@ -21,7 +21,7 @@ function myInstanceof(left, right) {
 }
 ```
 
-测试:
+测试：
 
 ```javascript
 console.log(myInstanceof("111", String)); //false
@@ -30,14 +30,32 @@ console.log(myInstanceof(new String("111"), String));//true
 
 
 
-### 11. map
+### Object.create
+
+```javascript
+Object.create = function create(prototype) {
+	if (prototype === null || typeof prototype !== 'object') {
+        throw new TypeError(`Object prototype may only be an Object: ${prototype}`);
+    }
+    
+    // 先创建一个空的函数
+  	function Temp() {};
+    Temp.__proto__ = prototype;
+    // 返回这个函数的实例
+    return new Temp;
+}
+```
+
+
+
+### map
 
 - 参数：接受两个参数，一个是回调函数，一个是回调函数的this值(可选)。
 
 其中，回调函数被默认传入三个值，依次为当前元素、当前索引、整个数组。
 
 - 创建一个新数组，其结果是该数组中的每个元素都调用一个提供的函数后返回的结果
-- 对原来的数组没有影响
+- 对原来的数组没有影响（纯）
 
 ```javascript
 let nums = [1, 2, 3];
@@ -58,7 +76,7 @@ Array.prototype.map = function(callbackFn, thisArg) {
     }  
     // 处理回调类型异常  
     if (Object.prototype.toString.call(callbackfn) != "[object Function]") {
-        throw new TypeError(callbackfn + ' is not a function')  
+        throw new TypeError(callbackfn + ' is not a function');  
     }  
     
     // 草案中提到要先转换为对象  
@@ -72,7 +90,7 @@ Array.prototype.map = function(callbackFn, thisArg) {
         if (k in O) {      
             let kValue = O[k];      
             // 依次传入this, 当前项，当前索引，整个数组      
-            let mappedValue = callbackfn.call(T, KValue, k, O);      
+            let mappedValue = callbackfn.call(T, kValue, k, O);      
             A[k] = mappedValue;    
         }  
     }  
@@ -80,7 +98,7 @@ Array.prototype.map = function(callbackFn, thisArg) {
 }
 ```
 
-`length >>> 0`, 字面意思是指"右移 0 位"，但实际上是把前面的空位用0填充，这里的作用是保证len为数字且为整数，举几个特例：
+`length >>> 0`, 字面意思是指"右移 0 位"，但实际上是把前面的空位用0填充，这里的作用是<u>保证len为数字且为整数</u>，举几个特例：
 
 ```javascript
 null >>> 0  //0
@@ -99,7 +117,7 @@ var a = {}; a >>> 0  //0
 
 
 
-### 12. reduce
+### reduce
 
 - 参数: 接收两个参数，一个为回调函数，另一个为初始值
 
@@ -156,7 +174,13 @@ Array.prototype.reduce  = function(callbackfn, initialValue) {
 
 
 
-### 13. push / pop
+### 用reduce实现map
+
+
+
+### push / pop
+
+不纯
 
 ```javascript
 Array.prototype.push = function(...items) {  
@@ -195,7 +219,7 @@ Array.prototype.pop = function() {
 
 
 
-### 14. filter
+### filter
 
 参数: 一个函数参数
 
@@ -241,7 +265,7 @@ Array.prototype.filter = function(callbackfn, thisArg) {
 
 
 
-### 15. splice
+### splice
 
 - `splice(position, count)` 表示从 position 索引的位置开始，删除count个元素
 
@@ -366,7 +390,7 @@ const computeDeleteCount = (startIndex, len, deleteCount, argumentsLen) => {
 
 
 
-### 16. sort
+### sort
 
 参数: 一个用于比较的函数，它有两个默认参数，分别是代表比较的两个元素。
 
@@ -392,11 +416,11 @@ nums.sort(function(a, b) {
 
 
 
-### 17. new
+### new
 
 1. 新生成了一个对象
 2. 链接到原型
-3. 绑定 this
+3. 绑定 this，执行构造函数
 4. 返回新对象
 
 做了三件事情:
@@ -409,21 +433,23 @@ nums.sort(function(a, b) {
 
 ```js
 function newFactory() { // ctor, ...args
+    // 获得构造函数
+    let ctor = [].shift.call(arguments);
     if(typeof ctor !== 'function'){      
         throw 'newOperator function the first param must be a function';    
     } 
-    // 创建一个空的对象
+    
     let obj = new Object();
-    // 获得构造函数
-    let ctor = [].shift.call(arguments);
-    // 链接到原型
+    
     obj.__proto__ = ctor.prototype;
-    // 绑定 this，执行构造函数
-    let res = ctor.apply(obj, arguments); // ...args
+    
+    let res = ctor.apply(obj, arguments); 
+    // let obj = Object.create(ctor.prototype);
+    
     // 确保 new 出来的是个对象
     let isObject = typeof res === 'object' && typeof res !== null;    
-    let isFunction = typoof res === 'function';    
-    return isObect || isFunction ? res : obj;
+    let isFunction = typeof res === 'function';    
+    return isObject || isFunction ? res : obj;
 }
 ```
 
@@ -454,10 +480,6 @@ Foo.prototype.getName = function () {
 
 new Foo.getName();   // -> 1
 new Foo().getName(); // -> 2
-
-```
-
-```js
 // 相当于
 new (Foo.getName());
 (new Foo()).getName();
@@ -465,30 +487,26 @@ new (Foo.getName());
 
 
 
-### 18. bind
+### bind
 
 1. 对于普通函数，绑定this指向
 2. 对于构造函数，要保证原函数的原型对象上的属性不能丢失
 
 ```javascript
-Function.prototype.bind = function (context, ...args) {    
-    // 异常处理    
+Function.prototype.bind = function (context, ...args) {        
     if (typeof this !== "function") {      
         throw new Error("Function.prototype.bind - what is trying to be bound is not callable");    
     }    
-    // 保存this的值，它代表调用 bind 的函数    
-    var self = this;    
-    var fNOP = function () {};   
-    var fbound = function () {        
-        self.apply(this instanceof self ?             
-                   this :             
-                   context, args.concat(Array.prototype.slice.call(arguments)));    
+        
+    let self = this; // 保存this的值，它代表调用bind的函数   
+    let fNOP = function () {};   
+    let fbound = function () {
+        // 匿名函数中的this是由当初绑定的位置触发决定的 （总之不是要处理的函数）
+        self.apply(this instanceof self ? this : context, args.concat(Array.prototype.slice.call(arguments)));    
     }    
     fNOP.prototype = this.prototype;    
     fbound.prototype = new fNOP(); 
-    
-    // 也可以用 Object.create 来处理原型:
-    fbound = Object.create(this.prototype);
+    // fbound = Object.create(this.prototype);
     
     return fbound;
 }
@@ -496,14 +514,16 @@ Function.prototype.bind = function (context, ...args) {
 
 
 
-### 18. call / apply
+### call / apply
 
 ```javascript
 Function.prototype.call = function (context, ...args) {  
-    var context = context || window;  
-    context.fn = this;  
+    let context = context || window;  
+    context.fn = this;
+	!/^(object|function)$/i.test(typeof context) ? context = Object(context) : null;
     
-    var result = eval('context.fn(...args)');  
+    let result = eval('context.fn(...args)');
+    // let result = context['fn'](...args); 
     
     delete context.fn;  
     return result;
@@ -524,6 +544,79 @@ Function.prototype.apply = function (context, args) {
 
 
 
+### 数组去重
+
+1. 如果数组的后面元素包含当前项，数组最后一项元素替换掉当前项元素，并删除最后一项元素
+
+   ```javascript
+   for(let i = 0; i < arr.length - 1; i++) { // 遍历
+     let item = arr[i]; 
+     let remainArgs = arr.slice(i+1); // 从i+1项开始截取数组中剩余元素，包括i+1位置的元素
+     if (remainArgs.indexOf(item) > -1) { // 数组的后面元素 包含当前项
+       arr[i] = arr[arr.length - 1]; // 用数组最后一项替换当前项
+       arr.length--; // 删除数组最后一项
+       i--; // 仍从当前项开始比较
+     }
+   }
+   ```
+
+2. 容器存储
+
+   ```javascript
+   let obj = {};
+   for (let i=0; i < arr.length; i++) {
+     let item = arr[i]; // 取得当前项
+     if (typeof obj[item] !== 'undefined') {
+       // obj 中存在当前属性，删除当前项
+       arr[i] = arr[arr.length-1];
+       arr.length--;
+       i--;
+     }
+     obj[item] = item; 
+   }
+   obj = null; // 垃圾回收
+   ```
+
+3. 基于正则
+
+   ```javascript
+   arr.sort((a,b) => a-b);
+   arrStr = arr.join('@') + '@';
+   let reg = /(\d+@)\1*/g,
+       newArr = [];
+   arrStr.replace(reg, (val, group1) => {
+    // newArr.push(Number(group1.slice(0, group1.length-1)));
+    newArr.push(parseFloat(group1));
+   })
+   ```
+
+4. `Set`
+
+   扩展运算符（`...`）内部使用`for...of`循环，所以也可以用于 Set 结构
+
+   ```javascript
+   const items = new Set([1, 2, 3, 4, 5, 5, 5, 5]);
+   items.size; // 5
+   
+   // 去除数组的重复成员
+   [...new Set(array)];
+   
+   // 去除字符串里面的重复字符
+   [...new Set('ababbc')].join(''); // "abc"
+   ```
+
+   ``` javascript
+   function dedupe(array) {
+     return Array.from(new Set(array));
+   }
+   
+   dedupe([1, 1, 2, 3]) // [1, 2, 3]
+   ```
+
+   
+
+
+
 ### 浅拷贝
 
 **手动实现**
@@ -534,6 +627,7 @@ const shallowClone = (target) => {
         const cloneTarget = Array.isArray(target) ? []: {};    
         for (let prop in target) {      
             if (target.hasOwnProperty(prop)) {
+                // 遍历对象自身可枚举属性（不考虑继承属性和原型对象）
                 cloneTarget[prop] = target[prop];      
             }    
         }    
@@ -592,21 +686,21 @@ const errorTag = '[object Error]';
 const regexpTag = '[object RegExp]';
 const funcTag = '[object Function]';
 
-const deepClone = (target, map = new Map()) => {  
+const deepClone = (target, map = new WeakMap()) => {  
     if(!isObject(target)) return target;  
     let type = getType(target);  
     let cloneTarget;  
     if(!canTraverse[type]) {    
         // 处理不能遍历的对象    
-        return handleNotTraverse(target, type);  
+        return handleNotTraverse(target, type); 
     } else {    
-        // 这波操作相当关键，可以保证对象的原型不丢失！    
+        // 保证对象的原型不丢失 
         let ctor = target.constructor;    
         cloneTarget = new ctor();  
     }  
     
     if(map.get(target)) return target;  
-    map.put(target, true); 
+    map.set(target, true); 
      //处理Map
     if(type === mapTag) {    
         target.forEach((item, key) => {      
@@ -621,7 +715,7 @@ const deepClone = (target, map = new Map()) => {
     }  
     // 处理数组和对象  
     for (let prop in target) {    
-        if (target.hasOwnProperty(prop)) {        
+        if (target.hasOwnProperty(prop)) {     
             cloneTarget[prop] = deepClone(target[prop], map);    
         };  
     }  
@@ -668,4 +762,193 @@ const handleNotTraverse = (target, tag) => {
     }
 }
 ```
+
+### 节流 & 防抖
+
+防抖和节流的作用都是防止函数多次调用，区别在于，假设一个用户一直触发这个函数，且每次触发函数的间隔小于wait，防抖的情况下只会调用一次，而节流的情况会每隔一定时间（参数wait）调用函数
+
+#### 节流
+
+**核心思想**：如果在定时器的时间范围内再次触发，则不予理睬，等当前定时器完成，才能启动下一个定时器任务，即**间隔执行**，每隔一段时间执行一次，目的是<u>频繁触发中缩减频率</u>
+
+**适用场景**：
+
+- 拖拽：固定时间内只执行一次，防止超高频次触发位置变动
+- 缩放：监控浏览器resize
+- 动画：避免多次触发动画引起性能问题
+
+```javascript
+// 定时器
+function throttle(fn, interval) {  
+    let flag = true;  
+    return funtion(...args) {        
+        if (!flag) return;    
+        flag = false;    
+        setTimeout(() => {      
+            fn.apply(this, args);      
+            flag = true;    
+        }, interval);  
+    };
+}
+```
+
+
+```javascript
+// 时间戳
+const throttle = function(fn, interval) {  
+    let last = 0;  
+    return function (...args) {        
+        let now = +new Date();    
+        // 还没到时间    
+        if(now - last < interval) return;    
+        last = now;    
+        fn.apply(this, args);
+    }
+}
+```
+
+#### 防抖
+
+**核心思想**：每次事件触发则删除原来的定时器，建立新的定时器，**延迟执行**，目的是<u>频繁触发中只执行一次</u>。跟王者荣耀回城功能类似，你反复触发回城功能，那么只认最后一次，从最后一次触发开始计时
+
+**适用场景**：
+
+- 按钮提交：防止多次提交按钮，只执行最后一次提交
+- 服务器验证：表单验证需要服务器配合，只执行一段连续输入事件的最后一次，还有搜索联想词功能类似，希望用户输入完最后一个字才调用查询接口
+
+```javascript
+function debounce(fn, delay) {  
+    let timer = null;  
+    return function anonymous(...args) {    
+        let context = this;    
+        if(timer) clearTimeout(timer);    
+        timer = setTimeout(function() {      
+            fn.apply(context, args);    
+        }, delay);  
+    }
+}
+```
+
+有立即选项的防抖
+
+```javascript
+function debounce (func, wait = 50, immediate = true) {
+  let timer, context, args;
+
+  // 延迟执行函数
+  const later = () => setTimeout(() => {
+    timer = null
+    // 延迟执行的情况下，函数会在延迟函数中执行
+    // 使用到之前缓存的参数和上下文
+    if (!immediate) {
+      func.apply(context, args);
+      context = args = null;
+    }
+  }, wait)
+
+  // 返回实际调用的函数
+  return function(...params) {
+    // 如果没有创建延迟执行函数就创建一个
+    if (!timer) {
+      timer = later();
+      // 如果是立即执行，调用函数；否则缓存参数和上下文
+      if (immediate) {
+        func.apply(this, params)
+      } else {
+        context = this;
+        args = params;
+      }
+    } else {
+      // 延迟函数重新计时
+      clearTimeout(timer)
+      timer = later()
+    }
+  }
+}
+```
+
+#### 加强版节流
+
+可以把防抖和节流放到一起，因为防抖有时候触发的太频繁会导致一次响应都没有，我们希望到了固定的时间必须给用户一个响应
+
+```javascript
+const throttle = function throttle(func, wait = 500) {
+    let previous = 0,
+        timer = null;
+    return function anonymous(...params) {
+        let now = +new Date(),
+            remaining = wait - (now - previous);
+        if (remaining <= 0) { // 到时间了
+            clearTimeout(timer);
+            timer = null; // 后续可以通过判断timer是否为null，而判断是否有定时器
+            previous = now;
+            func.call(this, ...params);
+        } else if (!timer) {
+            timer = setTimeout(() => {
+                clearTimeout(timer);
+                timer = null; // // 确保每次执行完的时候timer都清0，回到初始状态
+                previous = +new Date();
+                func.call(this, ...params);
+            }, remaining);
+        }
+    };
+};
+```
+
+
+
+### 大数相加
+
+```javascript
+function bigNumSum(a, b) {
+    let cur = 0;
+    while(cur < a.length || cur < b.length) {
+        if(!a[cur]) {
+            a = '0' + a;
+        } else if(!b[cur]) {
+            b = '0' + b;
+        }
+        cur++;
+    }
+
+    let flag = 0;
+    let res = [];
+
+    for(let i = a.length - 1; i >=0; i--) {
+        let sum = flag + +a[i] + +b[i];
+        flag = (sum > 9) ? 1 : 0;
+        res[i] = sum % 10;
+
+        if(flag == 1) res.unshift(1);
+    }
+
+    return res.join('');;
+}
+
+console.log(bigNumSum('123456789', '1234'));
+```
+
+
+
+### 实现加法
+
+```javascript
+function twoSum(a, b) {
+  if (a === 0) return b;
+  if (b === 0) return a;
+  const res = a ^ b;
+
+  return twoSum(res, (a & b) << 1);
+}
+
+// test
+
+a = twoSum("" + Math.pow(2, 20), "" + Math.pow(2, 20));
+
+console.log(a === Math.pow(2, 21));
+```
+
+
+
+
 

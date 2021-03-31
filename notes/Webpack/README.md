@@ -177,3 +177,11 @@ npm i postcss-loader autoprefixer -D
 
 
 
+
+
+```
+npm i babel-loader babel-core babel-preset-env babel-preset-stage-0 babel-preset-react -D
+```
+
+
+

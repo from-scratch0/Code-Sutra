@@ -101,9 +101,13 @@
 
 ### <a name="dynamic">Dynamic Programming</a>
 
-| ID   | Title                    | Difficulty |
-| ---- | ------------------------ | ---------- |
-| 509  | [斐波那契数](src/509.md) | Easy       |
+| ID   | Title                      | Difficulty |
+| ---- | -------------------------- | ---------- |
+| 322  | [零钱兑换](src/322.md)     | Medium     |
+| 509  | [斐波那契数](src/509.md)   | Easy       |
+| 651  | [4键键盘](src/651.md)      | Medium     |
+| 416  | [分割等和子集](src/416.md) | Medium     |
+| 494  | [目标和](src/494.md)       | Medium     |
 
 
 
@@ -112,4 +116,13 @@
 | ID   | Title               | Difficulty |
 | ---- | ------------------- | ---------- |
 | 46   | [全排列](src/46.md) | Medium     |
+| 51   | [N皇后](src/51.md)  | Hard       |
+
+
+
+### 位运算
+
+| ID   | Title                          | Difficulty |
+| ---- | ------------------------------ | ---------- |
+| 136  | [只出现一次的数字](src/136.md) | Easy       |
 

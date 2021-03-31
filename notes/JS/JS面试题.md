@@ -1,6 +1,136 @@
 ## 一 概念
 
-### '1'.toString()为什么可以调用？
+### var / let / const
+
+**`var`**
+
+1. 可以重复声明
+
+2. 不能定义常量
+
+3. 不支持块级作用域
+
+**`let`**
+
+1. 不存在变量提升
+
+    `var`命令会发生“变量提升”现象，即变量可以在声明之前使用
+
+   `let`命令所声明的变量一定要在声明后使用，否则报错
+
+2. 暂时性死区
+
+   ES6 明确规定，如果区块中存在`let`和`const`命令，这个区块对这些命令声明的变量，从一开始就形成了封闭作用域。凡是在声明之前就使用这些变量，就会报错
+
+   ES6 规定暂时性死区和`let`、`const`语句不出现变量提升；暂时性死区的本质就是，只要一进入当前作用域，所要使用的变量就已经存在了，但是不可获取，只有等到声明变量的那一行代码出现，才可以获取和使用该变量
+
+3. 不允许重复声明
+
+   `let`不允许在相同作用域内，重复声明同一个变量
+
+4. 块级作用域
+
+   没有块级作用域：内层变量可能会覆盖外层变量；用来计数的循环变量泄露为全局变量
+
+   考虑到环境导致的行为差异太大，应该避免在块级作用域内声明函数，如果确实需要，也应该写成函数表达式，而不是函数声明语句（函数声明类似于`var`，即会提升到作用域的头部）
+
+**`const`**
+
+1. 一旦声明变量，就必须立即初始化
+2. `const`实际上保证的是变量指向的那个内存地址所保存的数据不得改动：对于基本类型值（数值、字符串、布尔值）保存在变量指向的那个内存地址，因此等同于常量；但对于复合类型值（主要是对象和数组），变量指向的内存地址，保存的只是一个指向实际数据的指针，`const`只能保证这个指针是固定的（即总是指向另一个固定的地址），至于它指向的数据结构是不是可变的，就完全不能控制了。
+
+ES5 只有两种声明变量的方法：`var`命令和`function`命令。ES6 除了添加`let`和`const`命令，后面章节还会提到，另外两种声明变量的方法：`import`命令和`class`命令。所以，ES6 一共有 6 种声明变量的方法。
+
+
+
+### Symbol
+
+ES6 引入`Symbol`的原因：从根本上防止属性名的冲突
+
+
+
+### `Set` / `Map` 
+
+**`Set`**
+
+`Set`函数可以接受一个数组（或者具有 iterable 接口的其他数据结构）作为参数，用来初始化
+
+**扩展运算符（`...`）**内部使用`for...of`循环，所以也可以用于 Set 结构
+
+```javascript
+// 数组去重
+let arr = [3, 5, 2, 2, 5, 5];
+let unique = [...new Set(arr)]; // [3, 5, 2]
+
+// 间接使用数组的map和filter方法
+let set = new Set([1, 2, 3]);
+set = new Set([...set].map(x => x * 2)); // 返回Set结构：{2, 4, 6}
+
+let set = new Set([1, 2, 3, 4, 5]);
+set = new Set([...set].filter(x => (x % 2) == 0));// 返回Set结构：{2, 4}
+
+// 实现并集（Union）、交集（Intersect）和差集（Difference）
+let a = new Set([1, 2, 3]);
+let b = new Set([4, 3, 2]);
+
+// 并集
+let union = new Set([...a, ...b]); // Set {1, 2, 3, 4}
+
+// 交集
+let intersect = new Set([...a].filter(x => b.has(x))); // set {2, 3}
+
+// （a 相对于 b 的）差集
+let difference = new Set([...a].filter(x => !b.has(x))); // Set {1}
+```
+
+
+
+
+
+###  `WeakMap` / `WeakSet`
+
+**`WeakMap`**键只能使用对象：为了保证只有通过键对象的引用来取得值
+
+`WeakMap`支持`get() set() delete() has()`；不支持迭代、`size keys() values() entries()`，即没有办法获取`WekaMap`的所有键或值
+
+**`WeakSet`**中只能添加对象，不能添加原始值；对象只有在其他某个地方能被访问时才能留在弱引用中
+
+`WeakSet`支持`add() has() delete()` ；不支持迭代、`size keys()`
+
+> 因为不能准确知道何时会被回收
+
+```javascript
+const a = {};
+// 在创建对象时，分配了一块内存，并把这块内存的地址传给 a
+m.set(a, 100);
+// 执行 set 操作时，实际上是将 a 指向的内存地址和 100 关联起来
+// 如果使用这种方式，则不会被回收。因为 {} 有 a 变量在引用它
+a = null;
+// 将 a 置为空后，m 里的值 100 在垃圾回收时将会被回收
+
+const m = new WeakMap();
+m.set({}, 100);
+// 由于 {} 没有在其他地方引用，所以在垃圾回收时，这个值也会被回收
+
+const a = "abc";
+// 由于基本数据类型在传递时，传递的是值，而不是引用。
+m.set(a, 100);
+// 所以执行 set 操作时，实际上是将新的 'abc' 和 100 关联起来，而不是原来 a 变量指向的那个
+// 那这样就会有问题，m 里存储的永远是没有被引用的键，随时都会被回收
+```
+
+**使用场景**
+
+- 缓存计算结果：函数的结果需要被记住，在后续的对同一个对象调用时使用缓存结果
+- 如用户访问计数，用户离开时，该用户对象被回收，此时也不需要其访问次数
+
+使用Map时，需要手动清理缓存，否则即使该对象变为不可访问（`=null`），由于该对象是Map中的键，只要Map存在，该对象就依然会在内存中；而使用`WeakMap`，只要外部的引用消失，`WeakMap` 内部的引用，就会自动被垃圾回收清除，对应的缓存结果会随着对象回收一起被清除
+
+> 因为弱引用不会记入到引用计数中去
+
+
+
+### '1'.toString()
 
 其实在这个语句运行的过程中做了这样几件事情：
 
@@ -22,19 +152,33 @@ s = null;
 
 
 
-### 5.0.1+0.2为什么不等于0.3？
+### 0.1+0.2 = 0.3
 
 0.1和0.2在转换成二进制后会无限循环，由于标准位数的限制后面多余的位数会被截掉，此时就已经出现了精度的损失，相加后因浮点数小数位的限制而截断的二进制数字在转换为十进制就会变成0.30000000000000004。
 
+最常见的做法是使用一个很小的“错误舍入”值作为比较的 容差。 这个很小的值经常被称为“机械极小值（machine epsilon）”， 对于 JavaScript 来说这种 number 通常为 Number.EPSILON。
+
+```js
+function numbersCloseEnoughToEqual(n1,n2) {
+    return Math.abs( n1 - n2 ) < Number.EPSILON;
+}
+
+var a = 0.1 + 0.2;
+var b = 0.3;
+
+numbersCloseEnoughToEqual( a, b );                    // true
+numbersCloseEnoughToEqual( 0.0000001, 0.0000002 );    // false
+```
 
 
-### 6.如何理解BigInt?
 
-#### 什么是BigInt?
+### BigInt
+
+**什么是BigInt?**
 
 > BigInt是一种新的数据类型，用于当整数值大于Number数据类型支持的范围时。这种数据类型允许我们安全地对 `大整数`执行算术操作，表示高分辨率的时间戳，使用大整数id，等等，而不需要使用库。
 
-#### 为什么需要BigInt?
+**为什么需要BigInt?**
 
 在JS中，所有的数字都以双精度64位浮点格式表示，那这会带来什么问题呢？
 
@@ -50,7 +194,7 @@ console.log(999999999999999);  //=>10000000000000000
 9007199254740992 === 9007199254740993;    // → true 居然是true!
 ```
 
-#### 如何创建并使用BigInt？
+**如何创建并使用BigInt？**
 
 要创建BigInt，只需要在数字末尾追加n即可。
 
@@ -70,7 +214,7 @@ BigInt("9007199254740995");    // → 9007199254740995n
 10n + 20n;    // → 30n10n - 20n;    // → -10n+10n;         // → TypeError: Cannot convert a BigInt value to a number-10n;         // → -10n10n * 20n;    // → 200n20n / 10n;    // → 2n23n % 10n;    // → 3n10n ** 3n;    // → 1000nconst x = 10n;    ++x;          // → 11n--x;          // → 9nconsole.log(typeof x);   //"bigint"
 ```
 
-#### 值得警惕的点
+**值得警惕的点**
 
 1. BigInt不支持一元加号运算符, 这可能是某些程序可能依赖于 + 始终生成 Number 的不变量，或者抛出异常。另外，更改 + 的行为也会破坏 asm.js代码。
 2. 因为隐式类型转换可能丢失信息，所以不允许在bigint和 Number 之间进行混合操作。当混合使用大整数和浮点数时，结果值可能无法由BigInt或Number精确表示。
@@ -96,21 +240,34 @@ if(0n){//条件判断为false}if(3n){//条件为true}
 
 
 
+### 执行上下文、作用域链
+
+- 环境定义了变量或函数有权访问的其它数据。每个执行环境都有一个相关联的**变量对象**，环境中定义的所有变量和函数都保存在这个对象中。
+- 作用域链的作用是保证执行环境里有权访问的变量和函数是有序的，作用域链的变量只能向上访问，变量访问到 `window`对象即被终止，作用域链向下访问变量是不被允许的。
+- 简单的说，作用域就是变量与函数的可访问范围，即作用域控制着变量与函数的可见性和生命周期
+
+
+
 ## 二 检测
 
-### 2. instanceof能否判断基本数据类型？
+### instanceof判断基本数据类型
 
 能。比如下面这种方式:
 
-```
-class PrimitiveNumber {  static [Symbol.hasInstance](x) {    return typeof x === 'number'  }}console.log(111 instanceof PrimitiveNumber) // true
+```javascript
+class PrimitiveNumber {  
+    static [Symbol.hasInstance](x) {    
+        return typeof x === 'number'  
+    }
+}
+console.log(111 instanceof PrimitiveNumber) // true
 ```
 
-如果你不知道Symbol，可以看看MDN上关于hasInstance的解释。
+如果你不知道Symbol，可以看看MDN上关于hasInstance的解释
 
 其实就是自定义instanceof行为的一种方式，这里将原有的instanceof方法重定义，换成了typeof，因此能够判断基本数据类型。
 
-### 4. Object.is和===的区别？
+### Object.is和===
 
 Object在严格等于的基础上修复了一些特殊情况下的失误，具体来说就是+0和-0，NaN和NaN。源码如下：
 
@@ -131,7 +288,7 @@ function is(x, y) {
 
 ## 三 转换
 
-### 1. [] == ![]结果是什么？为什么？
+### [] == ![]
 
 解析:
 
@@ -147,7 +304,7 @@ function is(x, y) {
 
 
 
-### 5. 如何让if(a == 1 && a == 2)条件成立？
+### (a == 1 && a == 2)
 
 其实就是“对象转原始类型”的应用。
 
@@ -166,7 +323,43 @@ console.log(a == 1 && a == 2);//true
 
 ## 四 闭包
 
-### 如何解决下面的循环输出问题？
+**本质**
+
+闭包产生的本质就是，当前环境中存在指向父级作用域的引用。
+
+### 表现形式
+
+1. 返回一个函数
+2. 作为函数参数传递
+
+```javascript
+var a = 1;
+function foo(){  
+    var a = 2;  
+    function baz(){    
+        console.log(a);  
+    }  
+    bar(baz);
+}
+function bar(fn){  
+    // 这就是闭包  
+    fn();
+}
+foo(); // 输出2，而不是1
+```
+
+3. 在定时器、事件监听、Ajax请求、跨窗口通信、Web Workers或者任何异步中，只要使用了回调函数，实际上就是在使用闭包
+4. IIFE(立即执行函数表达式)创建闭包, 保存了全局作用域window和 当前函数的作用域
+
+```javascript
+var a = 2;
+(function IIFE(){  
+    // 输出2  
+    console.log(a);
+})();
+```
+
+### 循环输出问题
 
 ```javascript
 for(var i = 1; i <= 5; i ++){  
@@ -207,7 +400,11 @@ for(var i=1;i<=5;i++){
 3、使用ES6中的let
 
 ```javascript
-for(let i = 1; i <= 5; i++){  setTimeout(function timer(){    console.log(i)  },0)}
+for(let i = 1; i <= 5; i++){  
+    setTimeout(function timer(){    
+        console.log(i)  
+    },0)
+}
 ```
 
 let使JS发生革命性的变化，让JS有函数作用域变为了块级作用域，用let后作用域链不复存在，代码的作用域以块级为单位，以上面代码为例:
@@ -232,7 +429,18 @@ let使JS发生革命性的变化，让JS有函数作用域变为了块级作用�
 
 
 
-## 六 JS如何实现继承
+## 六 继承
+
+### 原型链
+
+- 每个对象都会在其内部初始化一个属性，就是 `prototype` (原型)，指向**原型对象**，原型对象的用途是包含可以由特定类型的所有实例共享的属性和方法；当访问一个对象的属性时，如果这个对象内部不存在这个属性，那么就会去 `prototype` 里找这个属性，这个`prototype` 又会有自己的 `prototype` ，于是就这样一直找下去，也就是原型链的概念
+- 当函数经过new调用时，这个函数就成为了**构造函数**，返回一个全新的实例对象，这个实例对象有一个**proto**属性，指向<u>构造函数的原型对象</u>
+- 关系：`instance.constructor.prototype = instance.__proto__`
+- 特点：`JavaScript` 对象是通过引用来传递的，我们创建的每个新对象实体中并没有一份属于自己的原型副本。当我们修改原型时，与之相关的对象也会继承这一改变当我们需要一个属性的时， `Javascript` 引擎会先看当前对象中是否有这个属性， 如果没有的,就会查找他的 `Prototype` 对象是否有这个属性，如此递推下去，一直检索到 `Object`内建对象
+
+
+
+### 继承方法
 
 **第一种: 借助call**
 
@@ -297,7 +505,7 @@ console.log(s3.play, s4.play);
 **第四种: 组合继承的优化1**
 
 ```javascript
- function Parent4 () {    
+function Parent4 () {    
      this.name = 'parent4';    
      this.play = [1, 2, 3];  
  }  
@@ -330,6 +538,10 @@ function Child5() {
     this.type = 'child5';  
 }  
 Child5.prototype = Object.create(Parent5.prototype); Child5.prototype.constructor = Child5;
+//给子类的构造函数重写原型prototype
+  // 以前：subClass.prototype = new superClass();
+  //让子类的prototype 等于父类的一个实例,其实是新构建的一个实例，其原型等于父类的原型而已
+  //另外还要覆盖constructor,让constructor指向subClass,否则 constructor会指向superClass
 ```
 
 这是最推荐的一种方式，接近完美的继承，它的名字也叫做**寄生组合继承**
@@ -344,7 +556,7 @@ function _possibleConstructorReturn (self, call) {
     return call && (typeof call === 'object' || typeof call === 'function') ? call : self; }
 function _inherits (subClass, superClass) {     
     // ...    
-    //看到没有        
+    //       
     subClass.prototype = Object.create(superClass && superClass.prototype, {
         constructor: {                         
             value: subClass,                         
@@ -352,7 +564,9 @@ function _inherits (subClass, superClass) {
             writable: true,                         
             configurable: true                 
         }         
-    });         
+    }); 
+    // subClass.__proto__ = superClass
+    //让子类的__proto__等于父类，这一步是为了让子类继承父类的静态属性
     if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 var Parent = function Parent () {        
     // 验证是否是 Parent 构造出来的 this        
@@ -368,7 +582,7 @@ var Child = (function (_Parent) {
 }(Parent));
 ```
 
-核心是_inherits函数，可以看到它采用的依然也是第五种方式——寄生组合继承方式，同时证明了这种方式的成功。不过这里加了一个`Object.setPrototypeOf(subClass, superClass)`，这是用来继承父类的静态方法，这也是原来的继承方式疏忽掉的地方
+核心是`_inherits`函数，可以看到它采用的依然也是第五种方式——寄生组合继承方式，同时证明了这种方式的成功。不过这里加了一个`Object.setPrototypeOf(subClass, superClass)`，这是用来继承父类的静态方法，这也是原来的继承方式疏忽掉的地方
 
 > 面向对象的设计一定是好的设计吗？
 
@@ -402,7 +616,7 @@ let newEnergyCar = compose(drive, music);
 
 
 
-## 六 函数的arguments（类数组）转化为数组
+## 六 arguments（类数组）转化为数组
 
 常见的类数组还有：
 
@@ -411,7 +625,7 @@ let newEnergyCar = compose(drive, music);
 
 必要时需要我们将它们转换成数组从而使用数组方法
 
-1. Array.prototype.slice.call()
+1. 借方法 Array.prototype.slice.call()
 
 ```javascript
 function sum(a, b) {  
@@ -419,6 +633,14 @@ function sum(a, b) {
     console.log(args.reduce((sum, cur) => sum + cur));//args可以调用数组原生的方法啦
 }
 sum(1, 2);//3
+```
+
+​	Array.prototype.concat.apply()
+
+```javascript
+function sum(a, b) {  
+    let args = Array.prototype.concat.apply([], arguments);
+}
 ```
 
 2. Array.from()
@@ -439,17 +661,9 @@ function sum(a, b) {
 }
 ```
 
-4. 利用concat+apply
-
-```javascript
-function sum(a, b) {  
-    let args = Array.prototype.concat.apply([], arguments);
-}
-```
 
 
-
-## 七 forEach中return有效果吗？如何中断forEach循环？
+## 七 forEach中return
 
 在forEach中用return不会返回，函数会继续执行
 
@@ -472,7 +686,7 @@ nums.forEach((item, index) => {
 
 
 
-## 八 JS判断数组中是否包含某个值
+## 八 数组检索
 
 **方法一：array.indexOf**
 
@@ -504,9 +718,9 @@ var result = arr.find(item =>{
 
 
 
-## 九 JS中flat——数组扁平化
+## 九 数组扁平化
 
-需求:多维数组=>一维数组
+需求：多维数组=>一维数组
 
 **1. 调用ES6中的flat方法**
 
@@ -583,7 +797,7 @@ this的指向，是在函数被调用的时候确定的，也就是执行上下�
 
    如果调用者函数，被某一个对象所拥有，那么该函数在调用时，内部的this指向该对象
 
-   如果函数独立调用，那么该函数内部的this，则指向undefined，非严格模式中自动指向全局对象
+   如果函数独立调用-，那么该函数内部的this，则指向undefined，非严格模式中自动指向全局对象
 
 4. **对象、方法的形式调用**
 
