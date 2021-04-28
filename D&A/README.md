@@ -32,7 +32,7 @@
 
 # LeetCode
 
-### <a name="arrays">Arrays</a>
+### <a name="arrays">数组</a>
 
 |  ID  | Title                                                   | Difficulty |
 | :--: | :------------------------------------------------------ | :--------: |
@@ -44,7 +44,9 @@
 | 283  | [Move Zeros](src/283.md)                                |    Easy    |
 | 704  | [二分查找](src/704.md)                                  |    Easy    |
 
-### <a name="strings">Strings</a>
+
+
+### <a name="strings">字符串</a>
 
 |  ID  | Title                                    | Difficulty |
 | :--: | ---------------------------------------- | :--------: |
@@ -57,7 +59,7 @@
 
 
 
-### <a name="linkedlist">Linked List</a>
+### <a name="linkedlist">链表</a>
 
 |  ID  | Title                                          | Difficulty |
 | :--: | ---------------------------------------------- | :--------: |
@@ -73,9 +75,18 @@
 
 
 
+### 双指针
+
+|  ID  | Title                    | Difficulty |
+| :--: | ------------------------ | :--------: |
+|  5   | [最长回文子串](src/5.md) |   Medium   |
+| 125  | [验证回文串](src/125.md) |    Easy    |
+
+
+
 ### <a name="bst">Binary Search Trees</a>
 
-### <a name="bt">Binary Trees</a>
+### <a name="bt">二叉树</a>
 
 |  ID  | Title                                          | Difficulty |
 | :--: | ---------------------------------------------- | :--------: |
@@ -91,23 +102,36 @@
 
 ### <a name="graphs">Graphs</a>
 
-### <a name="heaps">Heaps</a>
+### <a name="heaps">队列</a>
 
-### <a name="stacks">Stacks</a>
+### <a name="stacks">栈</a>
 
 ### <a name="searching">Searching</a>
 
-### <a name="sorting">Sorting</a>
+### <a name="sorting">排序</a>
 
-### <a name="dynamic">Dynamic Programming</a>
+| ID   | Title                   |
+| ---- | ----------------------- |
+|      | [快速排序](src/快排.md) |
 
-| ID   | Title                      | Difficulty |
-| ---- | -------------------------- | ---------- |
-| 322  | [零钱兑换](src/322.md)     | Medium     |
-| 509  | [斐波那契数](src/509.md)   | Easy       |
-| 651  | [4键键盘](src/651.md)      | Medium     |
-| 416  | [分割等和子集](src/416.md) | Medium     |
-| 494  | [目标和](src/494.md)       | Medium     |
+
+
+
+
+### <a name="dynamic">动态规划</a>
+
+| ID   | Title                              | Difficulty |
+| ---- | ---------------------------------- | ---------- |
+| 72   | [编辑距离](src/72.md)              | Hard       |
+| 322  | [零钱兑换](src/322.md)             | Medium     |
+| 509  | [斐波那契数](src/509.md)           | Easy       |
+| 651  | [4键键盘](src/651.md)              | Medium     |
+| 416  | [分割等和子集](src/416.md)         | Medium     |
+| 494  | [目标和](src/494.md)               | Medium     |
+| 516  | [最长回文子序列](src/516.md)       | Medium     |
+| 518  | [零钱兑换II-完全背包](src/518.md)  | Medium     |
+| 583  | [两个字符串的删除操作](src/583.md) | Medium     |
+| 1143 | [最长公共子序列](src/1143.md)      | Medium     |
 
 
 
