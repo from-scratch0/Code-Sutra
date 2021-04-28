@@ -1,4 +1,4 @@
-## 一 概念
+## 概念
 
 ### var / let / const
 
@@ -14,9 +14,15 @@
 
 1. 不存在变量提升
 
-    `var`命令会发生“变量提升”现象，即变量可以在声明之前使用
+   `var`命令会发生“变量提升”现象，即变量可以在声明之前使用
 
    `let`命令所声明的变量一定要在声明后使用，否则报错
+
+   > **变量提升**
+   >
+   > 函数在运行的时候，会首先创建执行上下文，然后将执行上下文入栈，然后当此执行上下文处于栈顶时，开始运行执行上下文。
+   >
+   > 在<u>创建执行上下文</u>的过程中会做三件事：**创建变量对象，创建作用域链，确定 this 指向**，其中创建变量对象的过程中，首先会为 arguments 创建一个属性，值为 arguments，然后会扫码 function 函数声明，创建一个同名属性，值为函数的引用，接着会扫码 var 变量声明，创建一个同名属性，值为 undefined，这就是变量提升。
 
 2. 暂时性死区
 
@@ -46,6 +52,10 @@ ES5 只有两种声明变量的方法：`var`命令和`function`命令。ES6 除
 ### Symbol
 
 ES6 引入`Symbol`的原因：从根本上防止属性名的冲突
+
+主要用来提供遍历接口，布置了 `symbol.iterator` 的对象才可以使用 `for···of` 循环，可以统一处理数据结构。调用之后回返回一个遍历器对象，包含有一个 next 方法，使用 next 方法后有两个返回值 value 和 done 分别表示函数当前执行位置的值和是否遍历完毕
+
+`Symbol.for()` 可以在全局访问 `symbol`
 
 
 
@@ -240,15 +250,7 @@ if(0n){//条件判断为false}if(3n){//条件为true}
 
 
 
-### 执行上下文、作用域链
-
-- 环境定义了变量或函数有权访问的其它数据。每个执行环境都有一个相关联的**变量对象**，环境中定义的所有变量和函数都保存在这个对象中。
-- 作用域链的作用是保证执行环境里有权访问的变量和函数是有序的，作用域链的变量只能向上访问，变量访问到 `window`对象即被终止，作用域链向下访问变量是不被允许的。
-- 简单的说，作用域就是变量与函数的可访问范围，即作用域控制着变量与函数的可见性和生命周期
-
-
-
-## 二 检测
+## 检测
 
 ### instanceof判断基本数据类型
 
@@ -286,7 +288,13 @@ function is(x, y) {
 
 
 
-## 三 转换
+## 转换
+
+### JS 隐式转换，显式转换
+
+一般非基础类型进行转换时会先调用 `valueOf`，如果 `valueOf` 无法返回基本类型值，就会调用 `toString`
+
+
 
 ### [] == ![]
 
@@ -321,11 +329,21 @@ console.log(a == 1 && a == 2);//true
 
 
 
-## 四 闭包
+## 闭包
 
 **本质**
 
 闭包产生的本质就是，当前环境中存在指向父级作用域的引用。
+
+### 作用域、作用域链
+
+![图片](https://mmbiz.qpic.cn/mmbiz_png/gEz4yUa4ueTNrnaXePCwVoWBmFVxiaTZqZDD2JibId1ToNpNXUorfaetjtkEnv5AuHxicoRXj3JNFu54ic8GXicJRXw/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
+
+在 JavaScript 中，将**作用域**定义为一套规则，这套规则用来管理引擎如何在当前作用域以及嵌套子作用域中根据标识符名称进行变量（变量名或者函数名）查找，简单的说，作用域就是变量与函数的可访问范围，即作用域控制着变量与函数的可见性和生命周期
+
+环境定义了变量或函数有权访问的其它数据。每个执行环境都有一个相关联的<u>变量对象</u>，环境中定义的所有变量和函数都保存在这个对象中
+
+当访问一个变量时，编译器在执行这段代码时，会首先从当前的作用域中查找是否有这个标识符，如果没有找到，就会去父作用域查找，如果父作用域还没找到继续向上查找，直到全局作用域为止，而**作用域链**，就是由当前作用域与上层作用域的一系列变量对象组成，它保证了当前执行的作用域对符合访问权限的变量和函数的有序访问
 
 ### 表现形式
 
@@ -429,14 +447,14 @@ let使JS发生革命性的变化，让JS有函数作用域变为了块级作用�
 
 
 
-## 六 继承
+## 继承
 
 ### 原型链
 
 - 每个对象都会在其内部初始化一个属性，就是 `prototype` (原型)，指向**原型对象**，原型对象的用途是包含可以由特定类型的所有实例共享的属性和方法；当访问一个对象的属性时，如果这个对象内部不存在这个属性，那么就会去 `prototype` 里找这个属性，这个`prototype` 又会有自己的 `prototype` ，于是就这样一直找下去，也就是原型链的概念
 - 当函数经过new调用时，这个函数就成为了**构造函数**，返回一个全新的实例对象，这个实例对象有一个**proto**属性，指向<u>构造函数的原型对象</u>
 - 关系：`instance.constructor.prototype = instance.__proto__`
-- 特点：`JavaScript` 对象是通过引用来传递的，我们创建的每个新对象实体中并没有一份属于自己的原型副本。当我们修改原型时，与之相关的对象也会继承这一改变当我们需要一个属性的时， `Javascript` 引擎会先看当前对象中是否有这个属性， 如果没有的,就会查找他的 `Prototype` 对象是否有这个属性，如此递推下去，一直检索到 `Object`内建对象
+- 特点：`JavaScript` 对象是通过引用来传递的，我们创建的每个新对象实体中并没有一份属于自己的原型副本。当我们修改原型时，与之相关的对象也会继承这一改变当我们需要一个属性的时， `Javascript` 引擎会先看当前对象中是否有这个属性，如果没有的,就会查找他的 `Prototype` 对象是否有这个属性，如此递推下去，一直检索到 `Object`内建对象
 
 
 
@@ -467,11 +485,14 @@ function Parent2() {
 function Child2() {    
     this.type = 'child2';  
 }  
-Child2.prototype = new Parent2();  
+Child2.prototype = new Parent2(); // 
 console.log(new Child2());
 ```
 
-看似没有问题，父类的方法和属性都能够访问，但实际上有一个潜在的不足
+原型链继承存在的问题：
+
+- 原型中包含的引用类型属性将被所有实例共享
+- 子类在实例化的时候不能给父类构造函数传参
 
 ```javascript
 var s1 = new Child2();  
@@ -482,25 +503,32 @@ console.log(s1.play, s2.play);
 
 只改变了s1的play属性，s2也跟着变了，因为两个实例使用的是同一个原型对象
 
-**第三种：将前两种组合**
+**第三种：组合继承**
+
+基本的思路是使用原型链继承原型上的属性和方法，而通过盗用构造函数继承实例属性。这样既可以把方法定义在原型上以实现重用，又可以让每个实例都有自己的属性。
 
 ```javascript
-function Parent3 () {    
+function Parent3 (name) {    
     this.name = 'parent3';    
     this.play = [1, 2, 3];  
 }  
-function Child3() {   
-    Parent3.call(this);    
+Parent3.prototype.getName = function() {
+    return this.name;
+}
+function Child3(name) {   
+    Parent3.call(this, name); //    
     this.type = 'child3';  
 }  
-Child3.prototype = new Parent3();  
+Child3.prototype = new Parent3(); // 
+Child3.prototype.constructor = Child3; //
+
 var s3 = new Child3();  
 var s4 = new Child3();  
 s3.play.push(4);  
 console.log(s3.play, s4.play);
 ```
 
-可以看到控制台之前的问题都得以解决。但是这里又徒增了一个新问题，那就是Parent3的构造函数会多执行了一次（`Child3.prototype = new Parent3();`）。这是我们不愿看到的。那么如何解决这个问题？
+Parent3的构造函数会多执行了一次（`Child3.prototype = new Parent3();` 和 `Parent3.call(this);`）
 
 **第四种: 组合继承的优化1**
 
@@ -526,7 +554,7 @@ console.log(s3)
 
 子类实例的构造函数是Parent4，显然这是不对的，应该是Child4
 
-**第五种(最推荐使用): 组合继承的优化1**
+**第五种(最推荐使用): 寄生组合继承**
 
 ```javascript
 function Parent5 () {    
@@ -540,11 +568,29 @@ function Child5() {
 Child5.prototype = Object.create(Parent5.prototype); Child5.prototype.constructor = Child5;
 //给子类的构造函数重写原型prototype
   // 以前：subClass.prototype = new superClass();
-  //让子类的prototype 等于父类的一个实例,其实是新构建的一个实例，其原型等于父类的原型而已
+  // 让子类的prototype 等于父类的一个实例,其实是新构建的一个实例，其原型等于父类的原型而已
+	// 不直接调用父类构造函数给子类原型赋值，而是通过创建空函数 F 获取父类原型的副本
   //另外还要覆盖constructor,让constructor指向subClass,否则 constructor会指向superClass
 ```
 
-这是最推荐的一种方式，接近完美的继承，它的名字也叫做**寄生组合继承**
+**class实现继承**
+
+```javascript
+class Animal {
+    constructor(name) {
+        this.name = name
+    } 
+    getName() {
+        return this.name
+    }
+}
+class Dog extends Animal {
+    constructor(name, age) {
+        super(name)
+        this.age = age
+    }
+}
+```
 
 ### ES6的extends被编译后的JavaScript代码
 
@@ -616,7 +662,7 @@ let newEnergyCar = compose(drive, music);
 
 
 
-## 六 arguments（类数组）转化为数组
+## arguments（类数组）转化为数组
 
 常见的类数组还有：
 
@@ -625,7 +671,7 @@ let newEnergyCar = compose(drive, music);
 
 必要时需要我们将它们转换成数组从而使用数组方法
 
-1. 借方法 Array.prototype.slice.call()
+1. 借方法 `Array.prototype.slice.call()`
 
 ```javascript
 function sum(a, b) {  
@@ -635,7 +681,7 @@ function sum(a, b) {
 sum(1, 2);//3
 ```
 
-​	Array.prototype.concat.apply()
+​	`Array.prototype.concat.apply()`
 
 ```javascript
 function sum(a, b) {  
@@ -643,7 +689,7 @@ function sum(a, b) {
 }
 ```
 
-2. Array.from()
+2. `Array.from()`
 
 ```javascript
 function sum(a, b) {  
@@ -663,7 +709,7 @@ function sum(a, b) {
 
 
 
-## 七 forEach中return
+## forEach中return
 
 在forEach中用return不会返回，函数会继续执行
 
@@ -686,7 +732,7 @@ nums.forEach((item, index) => {
 
 
 
-## 八 数组检索
+## 数组检索
 
 **方法一：array.indexOf**
 
@@ -718,70 +764,7 @@ var result = arr.find(item =>{
 
 
 
-## 九 数组扁平化
-
-需求：多维数组=>一维数组
-
-**1. 调用ES6中的flat方法**
-
-```javascript
-ary = arr.flat(Infinity);
-```
-
-**2. replace + split**
-
-```javascript
-ary = str.replace(/(\[|\])/g, '').split(',')
-```
-
-**3. replace + JSON.parse**
-
-```javascript
-str = str.replace(/(\[|\]))/g, '');
-str = '[' + str + ']';
-ary = JSON.parse(str);
-```
-
-**4. 普通递归**
-
-```javascript
-let result = [];
-let fn = function(ary) {  
-    for(let i = 0; i < ary.length; i++) {    
-        let item = ary[i];    
-        if (Array.isArray(ary[i])){      
-            fn(item);    
-        } else {      
-            result.push(item);    
-        }  
-    }
-}
-```
-
-**5. 利用reduce函数迭代**
-
-```javascript
-function flatten(ary) {    
-    return ary.reduce((pre, cur) => {        
-        return pre.concat(Array.isArray(cur) ? flatten(cur) : cur);    
-    }, []);
-}
-let ary = [1, 2, [3, 4], [5, [6, 7]]];
-console.log(flatten(ary))
-```
-
-**6. 扩展运算符**
-
-```javascript
-//只要有一个元素有数组，那么循环继续
-while (ary.some(Array.isArray())) {  
-    ary = [].concat(...ary);
-}
-```
-
-
-
-## 十九 this
+## this
 
 this的指向，是在函数被调用的时候确定的，也就是执行上下文被创建时确定的
 
@@ -816,10 +799,29 @@ this的指向，是在函数被调用的时候确定的，也就是执行上下�
    IE比较奇异，使用attachEvent，里面的this默认指向window
 
 > 优先级: new > call、apply、bind > 对象.方法 > 直接调用
+>
+> New绑定 > 显式绑定 > 隐式绑定 > 默认绑定
 
 
 
-## 二十 浅拷贝
+## 箭头函数
+
+- 普通函数通过 function 关键字定义， this 无法结合词法作用域使用，在运行时绑定，只取决于函数的调用方式，在哪里被调用，调用位置。（取决于调用者，和是否独立运行）
+
+  - 一个函数内部有两个方法：[[Call]] 和 [[Construct]]，在通过 new 进行函数调用时，会执行 [[construct]] 方法，创建一个实例对象，然后再执行这个函数体，将函数的 this 绑定在这个实例对象上
+  - 当直接调用时，执行 [[Call]] 方法，直接执行函数体
+
+- 箭头函数使用被称为 “胖箭头” 的操作 `=>` 定义，箭头函数不应用普通函数 this 绑定的四种规则，而是根据外层（函数或全局）的作用域来决定 this，且箭头函数的绑定无法被修改（new 也不行）
+
+- - 箭头函数没有 [[Construct]] 方法，不能被用作构造函数调用，当使用 new 进行函数调用时会报错。
+  - 箭头函数常用于回调函数中，包括事件处理器或定时器
+  - 箭头函数和 var self = this，都试图取代传统的 this 运行机制，将 this 的绑定拉回到词法作用域
+  - 没有原型、没有 this、没有 super，没有 arguments，没有 new.target
+  - 不能通过 new 关键字调用
+
+
+
+## 浅拷贝
 
 ```javascript
 let arr = [1, 2, 3];

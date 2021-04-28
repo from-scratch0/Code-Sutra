@@ -1,3 +1,13 @@
+## script
+
+- 如果依赖其他脚本和 DOM 结果，使用 `defer`
+
+  `defer` 模式下，JS 的加载是异步的，执行是被推迟的，等整个文档解析完成、`DOMContentLoaded` 事件即将被触发时，被标记了 defer 的 JS 文件才会开始依次执行
+
+- 如果与 DOM 和其他脚本依赖不强时，使用 `async`
+
+  `async` 模式下，JS 不会阻塞浏览器做任何其它的事情，它的加载是异步的，当它加载结束，JS 脚本会立即执行
+
 ## 缓存
 
 **缓存作用**
@@ -31,6 +41,31 @@
 再次请求数据时，客户端将备份的缓存标识发送给服务器，服务器根据缓存标识进行判断，判断成功后，返状态码，通知客户端比较成功，可以使用缓存数据
 
 ### 请求流程
+
+当浏览器对一个资源（比如一个外链的 `a.js`）进行请求的时候会发生什么？请从缓存的角度大概说下：
+
+![图片](https://mmbiz.qpic.cn/mmbiz_png/uBN8JVFZtDRnyD7BBrh8AQxTITaWwiagxkaq3XGPwCCCC64DyV74YdGZ2IpxmdgqRw5MtpwSpKHe8ZUgDVELpzQ/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
+
+1. 调用 `Service Worker` 的 `fetch` 事件获取资源；
+
+2. 查看 `memory cache`；
+
+3. 查看 `disk cache`；这里又细分：
+
+   - 如果有强制缓存且未失效，则使用强制缓存，不请求服务器。这时的状态码全部是 200；
+
+   - 如果有强制缓存但已失效，使用协商缓存，比较后确定 304 还是 200；
+
+4. 发送网络请求，等待网络响应；
+6. 把响应内容存入 `disk cache` (如果请求头（`Cache-control`, `Pragma` 等）信息配置可以存的话)；
+
+7. 把响应内容**的引用**存入 `memory cache` (无视请求头信息的配置，除了 `no-store` 之外)；
+
+8. 把响应内容存入 `Service Worker` 的 `Cache Storage` (如果 `Service Worker` 的脚本调用了 `cache.put()`)；
+
+> 可以在 Chrome 的开发者工具中，Network -> Size 一列看到一个请求最终的处理方式：如果是大小 (多少 K， 多少 M 等) 就表示是网络请求，否则会列出 `from memory cache`, `from disk cache` 和 `from ServiceWorker`
+
+
 
 **第一次请求**
 
@@ -108,6 +143,10 @@ ETag是Web服务端产生的，发给浏览器客户端
 - 在性能上，`Last-Modified`优于`ETag`：`Last-Modified`仅仅只是记录一个时间点，而 `Etag`需要根据文件的具体内容生成哈希值
 - 如果两种方式都支持的话，服务器会优先考虑`ETag`
 
+#### 启发式缓存
+
+如果响应中未显示`Expires`，`Cache-Control：max-age`或`Cache-Control：s-maxage`，并且响应中不包含其他有关缓存的限制，缓存可以使用启发式方法计算新鲜度寿命。通常会根据响应头中的2个时间字段 Date 减去 `Last-Modified` 值的 10% 作为缓存时间
+
 ### 缓存位置
 
 浏览器中的缓存位置一共有四种，按优先级从高到低排列分别是：
@@ -119,26 +158,50 @@ ETag是Web服务端产生的，发给浏览器客户端
 
 **Service Worker**
 
-Service Worker 借鉴了 Web Worker的 思路，即让 JS 运行在主线程之外，由于它脱离了浏览器的窗体，因此无法直接访问`DOM`
+Service Worker 借鉴了 Web Worker的思路，即让 JS 运行在主线程之外，由于它脱离了浏览器的窗体，因此无法直接访问`DOM`
 
-虽然如此，它仍然能帮助我们完成很多有用的功能，比如离线缓存、消息推送和网络代理等功能。其中的离线缓存就是 **Service Worker Cache**。
+虽然如此，它仍然能帮助我们完成很多有用的功能，比如离线缓存、消息推送和网络代理等功能。其中的离线缓存就是 Service Worker Cache
 
 Service Worker 同时也是 PWA 的重要实现机制
 
-**Memory Cache / Disk Cache**
+Service Worker 的生命周期包括 install、active、working 三个阶段，一旦 Service Worker 被 install，这个缓存是永久性的，只会在 active 与 working 之间切换，有两种情况会导致这个缓存中的资源被清除：手动调用 API `cache.delete(resource)` 或者容量超过限制，被浏览器全部清空
 
-*Memory Cache*指的是内存缓存，从效率上讲它是最快的，但是从存活时间来讲又是最短的，当渲染进程结束后，内存缓存也就不存在了
+如果 Service Worker 没能命中缓存，一般情况会使用 `fetch()` 方法继续获取资源。这时候，浏览器就去 memory cache 或者 disk cache 进行下一次找缓存的工作了。经过 Service Worker 的 `fetch()` 方法获取的资源，即便它并没有命中 Service Worker 缓存，甚至实际走了网络请求，也会标注为 `from ServiceWorker`
 
-*Disk Cache*就是存储在磁盘中的缓存，从存取效率上讲是比内存缓存慢的，但是它的优势在于存储容量和存储时长
+**Memory Cache**
+
+*Memory Cache*指的是内存缓存，从效率上讲它是最快的，但是从存活时间来讲又是最短的，常规情况下，浏览器的 TAB 关闭后该次浏览的 memory cache 便告失效 (为了给其他 TAB 腾出位置)；如果极端情况下 (例如一个页面的缓存就占用了超级多的内存)，那可能在 TAB 没关闭之前，排在前面的缓存就已经失效了
+
+*几乎* 所有的请求资源都能进入 memory cache，
+
+> 这里细分一下主要有两块：
+> 1. `preloader`：在古老的年代(大约 2007 年以前)，浏览器中`“请求 js/css - 解析执行 - 请求下一个 js/css - 解析执行下一个 js/css”` 这样的“串行”操作模式在每次打开页面之前进行着；很明显在解析执行的时候，网络请求是空闲的，这就有了发挥的空间：能不能一边解析执行 `js/css`，一边去请求下一个(或下一批)资源呢？这就是 `preloader` 要做的事情。不过 `preloader` 没有一个官方标准，所以每个浏览器的处理都略有区别。例如有些浏览器还会下载` css` 中的 `@import` 内容或者 `<video>` 的 `poster`等。而这些被 `preloader` 请求够来的资源就会被放入 memory cache 中，供之后的解析执行操作使用。
+> 2. `preload`： (虽然看上去和刚才的 `preloader` 就差了俩字母)例如 `<link rel="preload">`，这些显式指定的预加载资源，也会被放入 memory cache 中。
+
+当 `HTTP` 头设置了 `Cache-Control: no-store` 的时候或者浏览器设置了 `Disabled cache` 就无法把资源存入内存了，其实也无法存入硬盘。
+
+> 在从 memory cache 获取缓存内容时，浏览器会忽视例如 `max-age=0`, `no-cache` 等头部配置。例如页面上存在几个相同 `src` 的图片，即便它们可能被设置为不缓存，但依然会从 memory cache 中读取。这是因为 memory cache 只是短期使用，大部分情况生命周期只有一次浏览而已。而 `max-age=0` 在语义上普遍被解读为“不要在下次浏览时使用”，所以和 memory cache 并不冲突。
+
+memory cache 机制保证了一个页面中如果有两个相同的请求 (例如两个 `src` 相同的 `<img>`，两个 `href` 相同的 `<link>`)都实际只会被请求最多一次，避免浪费。当从 `memory cache` 中查找缓存的时候，不仅仅会去匹配资源的 `URL`，还会比对其 `Content-type` 、CORS 中的域名规则等；因此一个作为脚本 (script) 类型被缓存的资源是不能用在图片 (image) 类型的请求中的，即便他们 `src` 相等
+
+**Disk Cache**
+
+*Disk Cache*就是存储在磁盘中的缓存，是实际存在于文件系统中的。而且它允许相同的资源在跨会话，甚至跨站点的情况下使用，例如两个站点都使用了同一张图片。从存取效率上讲是比内存缓存慢的，但是它的优势在于存储容量和存储时长
 
 - 比较大的JS、CSS文件会直接被丢进磁盘，反之丢进内存
 - 内存使用率比较高的时候，文件优先进入磁盘
 
+disk cache 会严格根据 HTTP 头信息中的各类字段来判定资源缓存情况
+
 **Push Cache**
 
-即推送缓存，这是浏览器缓存的最后一道防线
+是指 HTTP2 在 server push 阶段存在的缓存，即推送缓存，这是浏览器缓存的最后一道防线
 
 它是 `HTTP/2` 中的内容，虽然现在应用的并不广泛，但随着 HTTP/2 的推广，它的应用越来越广泛
+
+- Push Cache 是缓存的最后一道防线，浏览器只有在 Memory Cache、HTTP Cache 和 Service Worker Cache 均未命中的情况下才会去询问 Push Cache
+- Push Cache 是一种存在于会话阶段的缓存，当 session 终止时，缓存也随之释放
+- 不同的页面只要共享了同一个 HTTP2 连接，那么它们就可以共享同一个 Push Cache
 
 
 
@@ -245,7 +308,7 @@ node --max-old-space-size=2048 xxx.js
     - 内部函数可以引用外层的参数和变量
     - 参数和变量不会被垃圾回收机制回收
 - 优点：能够实现封装和缓存等
-    
+  
     - 缺点：消耗内存、使用不当会内存溢出，
 - <u>解决方法</u>：在退出函数之前，将不使用的局部变量全部删除
   
@@ -342,11 +405,13 @@ V8 只负责 JS 代码的编译执行，给 V8 一段 JS 代码，它就从头�
 
 事件循环之所以可以实现异步，是因为碰到异步执行的代码，浏览器会将用户注册的回调函数存起来，然后继续执行后面的代码。等到未来某一个时刻，“异步任务”完成了，会触发一个事件，浏览器会将“任务的详细信息”作为参数传递给之前用户绑定的回调函数。具体来说，就是将用户绑定的回调函数推入浏览器的执行栈。
 
+`ES6` 规范中，宏任务`（Macrotask）` 称为 `Task`， 微任务`（Microtask）` 称为`Jobs`。宏任务是由宿主（浏览器、`Node`）发起的，而微任务由 JS 自身发起。
+
 #### 宏任务(`MacroTask`)
 
 在 JS 中，大部分的任务都是在主线程上执行，为了让这些事件有条不紊地进行，JS引擎需要对之执行的顺序做一定的安排，V8 其实采用的是一种**队列**的方式来存储这些任务，常见的任务有：
 
-- 普通任务队列：渲染事件、用户交互事件、JS脚本执行、I/O （网络请求、文件读写完成事件等等）、DOM事件的处理函数（handler / listener）
+- 普通任务队列：UI渲染事件、用户交互事件、JS脚本执行、I/O （网络请求、文件读写完成事件等等）、DOM事件的处理函数（handler / listener）
 - 延迟队列：专门处理诸如`setTimeout` / `setInterval`这样的定时器回调任务
 
 #### 微任务(`MicroTask`)
@@ -357,7 +422,15 @@ V8 只负责 JS 代码的编译执行，给 V8 一段 JS 代码，它就从头�
 
 在每一个宏任务中定义一个**微任务队列**，当该宏任务执行完成，会检查其中的微任务队列，如果为空则直接执行下一个宏任务，如果不为空，则依次执行微任务，执行完成才去执行下一个宏任务。
 
-常见的微任务有`MutationObserver`、`Promise.then`(或.reject) 以及以 Promise 为基础开发的其他技术（比如`fetch API`）、`async` / `await`中`await`的内容、V8 的垃圾回收过程
+- 常见的微任务有`MutationObserver`、`Promise.then`(或.reject) 以及以 Promise 为基础开发的其他技术（比如`fetch API`）、`async` / `await`中`await`的内容、V8 的垃圾回收过程、`process.nextTick()`
+
+> **优先级**
+>
+> `setTimeout` = `setInterval` 一个队列
+>
+> `setTimeout` > `setImmediate`
+>
+> `process.nextTick` > Promise
 
 #### 浏览器环境下
 
@@ -455,16 +528,30 @@ event loop 首先会在内部维持多个<u>事件队列（或者叫做观察者
 
 - **HTML事件处理程序**
 
+  就是将事件处理程序直接绑定到 `HTML` 的属性中
+
   扩展作用域，让事件处理程序无需引用其他元素就能访问其他元素字段
 
   很多HTML事件处理程序都会被封装在try-catch块中捕获错误
 
 - **DOM0级事件处理程序**
 
+  将一个函数赋值给 `DOM` 元素的一个事件处理程序属性
+
   1. 获取要操作对象的引用
   2. 每个元素都有事件处理程序属性，将一个函数赋值给它
 
-  该事件处理程序是在元素的作用域内运行 this->该元素
+  ```javascript
+  let btn = document.getElementById('div');
+  
+  // 添加事件
+  btn.onclick = function() { };
+  
+  // 移除事件
+  btn.onclick = null;
+  ```
+
+  该事件处理程序是在元素的作用域内运行 this -> 该元素
 
   删除事件处理程序：`事件处理程序属性 = null`
 
@@ -493,6 +580,31 @@ event loop 首先会在内部维持多个<u>事件队列（或者叫做观察者
 `event.stopPropagation()`
 
 `event.eventPhase` =2时，`this`、`target`、`currentTarget`相等
+
+### 事件类型
+
+`DOM3 Events` 定义了如下事件类型：
+
+- 用户界面事件(`UIEvent`)：涉及与 `BOM` 交互的通用浏览器事件，
+  比如 `onload`、`resize`、`scroll`、`input`、`select` 等；
+  
+- 焦点事件(`FocusEvent`)：在元素获得和失去焦点时触发，
+  比如 `focus`、`blur`；
+  
+- 鼠标事件(`MouseEvent`)：使用鼠标在页面上执行某些操作时触发，
+  比如 `click`、`mousedown`、`mouseover` 等；
+  
+- 滚轮事件(`WheelEvent`)：使用鼠标滚轮(或类似设备)时触发，
+  比如 `mousewheel`；
+  
+- 输入事件(`InputEvent`)：向文档中输入文本时触发，
+  比如 `textInput`；
+  
+- 键盘事件(`KeyboardEvent`)：使用键盘在页面上执行某些操作时触发，
+  比如 `keydown`、`keypress`；
+  
+- 合成事件(`CompositionEvent`)：在使用某种 `IME`(`Input Method Editor`，输入法编辑器)输入字符时触发，
+  比如 `compositionstart`。
 
 ### 内存性能
 
