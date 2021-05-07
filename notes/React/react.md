@@ -37,7 +37,7 @@ React elements是不可变的，更新UI只能通过重建一个新的element来
 
 
 
-## Components & Props
+## 组件 & Props
 
 Components使UI分割成独立可复用的部分
 
@@ -138,7 +138,7 @@ React组件必须表现得像一个纯函数，即不能修改输入（属性pro
 
 
 
-## State & Lifecycle
+## State & 生命周期
 
 State和props相似，但state是组件私有的
 
@@ -215,7 +215,273 @@ ReactDOM.render(
 
 #### ```setState()```Tips
 
-#### 数据流
+#### 数据流（组件通信）
+
+React 中遵循的是单向数据流，组件的作用域相对是独立的，即不同的组件之间是不能共享数据的，而当将各个组件组装在一起的时候，就需要在这些组件之间建立一些联系，这就是所谓的组件通信
+
+- **`props`**（父子组件向子组件通信）
+
+  父组件向子组件传递数据通过 props 来实现，子组件得到 props 后进行相应的处理
+
+- **事件回调**（子组件向父组件通信）
+
+  利用回调函数，实现子组件向父组件通信：父组件将一个函数作为 props 传递给子组件，子组件调用该回调函数，从而实现向父组件通信
+
+  这种方式实际上还是父组件向子组件传递 props，只是传递的这个 props 是一个父组件作用域下的函数，该函数定义了如何修改父组件的数据，然后在子组件中调用这个函数，并且传递需要用到的参数
+
+- **`Context`对象**
+
+   `Context` 对象提供了一种方式无需层层为组件手动添加 `props`，就能在组件树间进行数据传递
+
+  1. 创建 `Context` 对象
+
+     ```javascript
+     // MyContext.js
+     // 该对象在顶层组件注入数据和子组件引入数据都会用到
+     import React from 'react'
+     const MyContext = React.createContext(defaultValue) // 在这里可以给初始值
+     export default MyContext
+     ```
+
+  2. 创建 `Provider`
+
+     ```javascript
+     // MyProvider.js
+     import MyContext from './MyContext'
+     
+     class MyProvider extends Component{
+       state = {
+         listData: [
+           {
+             id: 1,
+             title: 'JavaScript'
+           }
+         ]
+       }
+     
+       addList = (title) => { // 添加数据
+         const list = this.state.listData
+         list.push({
+           id: Math.floor(Math.random() * 1000),
+           title
+         })
+         this.setState({
+           listData: list
+         })
+       }
+       
+       delItem = (id) => { // 删除数据
+         const list = this.state.listData.filter(item => item.id != id)
+         this.setState({
+           listData: list
+         })
+       }
+       
+       render() {
+         return (
+           // 使用一个 Provider 来将当前的 state 传递给以下的组件树
+           // 中间的组件再也不必指明，无论多深，任何组件都能读取这个值
+           // 使用该组件作为最外层组件
+           <MyContext.Provider
+             // 通过 value 向所有的子组件传递数据以及修改数据的方法
+             // 这里写两对大括号是因为外面那对是表示插值，里面那对表示对象
+             value={{ 
+               listData: this.state.listData,
+               addList: this.addList,
+               delItem: this.delItem
+             }}
+           >
+             {// 将其他组件插入此处，即 React 版本的 slot 写法}
+             {this.props.children}
+           </MyContext.Provider>
+         );
+       }
+     }
+     
+     ```
+
+  3. `Provider`组件作为所有需要共享数据组件的顶层组件
+
+     ```javascript
+     // App.js
+     class App extends Component{
+     
+       render() {
+         return (
+           <MyProvider>
+             <List />  
+           </MyProvider>
+         )
+       }
+     }
+     ```
+
+  4. 直接在需要使用数据的子组件中通过 `Consumer` 引入，而不需要层层传递 `props`
+
+     ```javascript
+     // Add.js
+     import MyContext from './MyContext'
+                 
+     class Add extends Component{
+       state = {
+         title: ''
+       }
+     
+       inputChange = (e) => {
+         this.setState({
+           title: e.target.value
+         })
+       }
+       
+       render() {
+         const { title } = this.state
+         
+         return (
+           // 注意：使用 MyContext.Consumer 包裹函数才能拿到 context 对象
+           <MyContext.Consumer>
+             {context => ( // 或者直接解构 {listData, addList, delItem}
+               <input type="text" value={title} onChange={this.inputChange} />
+               <button onClick={() => context.addList(title)}>添加</button>
+             )}
+           </MyContext.Consumer>
+         )
+       }
+         
+     }
+     ```
+
+   `Context` 对象相当于一个可以提供全局数据的容器，只需要将通信的内容放在这个容器中，就可以在所有的子组件中共享“全局”数据
+
+  - **`React.createContext`**
+
+    该方法用于创建一个新的 `Context` 对象，当 `React` 渲染一个组件，且该组件注册了 `Context` 时，它将读取父组件中，距离该组件最近的 `Provider` 组件的 `Context` 值
+
+  - **`Context.Provider`**
+
+    如果需要使用 `Context` 对象，则需要通过 `Context.Provider` 组件作为最外层包装组件，并显示的通过 `value` 属性指定要暴露给子组件的数据，属于数据提供者
+
+  - **`Context.Consumer`**
+
+    `Consumer` 是一个监听 `Context` 变化的组件，它使得我们可以在一个函数组件中，监听 `Contxt` 的改变；属于数据使用者，用于获取 `Provider` 提供的数据
+
+    `Consumer` 组件要求其子元素为一个函数，该函数的参数接收当前的 `Context` 的 value 值，并返回一个 `React` 节点；传递给该函数的参数 `value` 等于距离此 `Consumner` 最近的外层 `Provider` 组件的 `value` 值；如果没有找到外层的 `Provider`，则等于调用 `createContext()` 时传递的参数值
+
+- `useContext`
+
+  直接使用 `Context` 对象这种方式，子组件在每次引用数据时，都需要使用 `Consumer` 组件来包裹，是比较麻烦的，也不容易维护，现在结合 React 的 hooks 中的 `useContext` 来解决`Consumer` 难用的问题
+
+  1. 创建 `Context` 对象
+
+  2. 创建 `reducer` 来管理数据
+
+     ```javascript
+     // MyContext.js
+     // 该对象在顶层组件注入数据和子组件引入数据都会用到
+     import React from 'react';
+     const MyContext = React.createContext(); // 在这里可以给初始值
+     export default MyContext;
+     
+     // 了解 redux 的同学会很容易理解
+     function reducer(state, action) {
+       switch(action.type){
+         case 'ADD':
+           return {
+             // 利用解构来实现数据合并以及添加数据
+             ...state,
+             listData: [
+               ...state.listData,
+               {
+                 id: Math.floor(Math.random() * 1000),
+                 title: action.title
+               }
+             ]
+           }
+         case 'DEL':
+           const list = state.listData.filter(item => item.id != action.id)
+           return {
+             ...state,
+             listData: list
+           }
+         default:
+           return state  
+       }
+     }
+     
+     export default reducer
+     ```
+
+  3. 创建 `Provider`，用 `useReducer` 来替换 `useState` 来管理复杂的数据
+
+     ```javascript
+     import { useReducer } from 'react'
+     import MyContext from './MyContext'
+     import reducer from './reducer'
+     
+     const initState = []
+     
+     const MyProvider = () => {
+       
+       const [state, dispatch] = useReducer(reducer, initState)
+       
+       return (
+         <MyContext.Provider
+           { /* 只需要传递数据以及修改数据的方法 */ }
+           value={{ 
+             state, 
+             dispatch
+           }}
+         >
+           {this.props.children}
+         </MyContext.Provider>
+       );
+     }
+     ```
+
+  4. `MyProvider` 组件作为所有需要共享数据组件的顶层组件
+
+     ```javascript
+     // App.js
+     class App extends Component{
+     
+       render() {
+         return (
+           <MyProvider>
+             <List />  
+           </MyProvider>
+         )
+       }
+     }
+     ```
+
+  5. 使用 `useContext` 获取 `Context` (主要是在这一步发生了改变)
+
+     ```javascript
+     // Add.js
+     // 通过 React.createContext 创建出来的上下文，在子组件中可以通过 useContext 获取 Provider 提供的内容
+     // 注意：这一步将 Add 组件改为函数组件
+     import { useState, useContext } from 'react'
+     import MyContext from './MyContext'
+                 
+     const Add = () => {
+       const { title, setTitle } = useState('')
+       // useContext 接收一个 context 对象并返回该 context 的当前值
+       // 当前的 context 值由上层组件中距离当前组件最近的 <Provider> 的 value 决定
+       const context = useContext(MyContext)
+     
+       const inputChange = (e) => {
+         setTitle(e.target.value)
+       }
+         
+       return (
+         <>
+           <input type="text" value={title} onChange={inputChange} />
+           <button onClick={() => MyContext.addList(title)}>添加</button>
+         </>
+       )   
+     };
+     ```
+
+- `Redux`
 
 
 
