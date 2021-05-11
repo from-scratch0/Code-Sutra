@@ -699,3 +699,108 @@ class Form extends React.Component {
 }
 ```
 
+
+
+## 核心概念
+
+用公式概括`React`：
+
+```javascript
+const state = reconcile(update);
+const UI = commit(state);
+```
+
+视图可以看作状态经过函数的映射
+
+用户与界面的交互，可以看作这个公式的不断执行
+
+1. 用户交互产生`update`（更新）
+2. `update`经过`reconcile`步骤计算出当前应用的`state`
+3. `commit`将`state`映射为视图变化（UI）
+
+
+
+用计算机的抽象层级来类比：
+
+```
+高层：应用程序
+中层：操作系统
+底层：计算机组成架构
+```
+
+对应`React`：
+
+```
+高层：应用程序       ClassComponent生命周期
+中层：操作系统       介入架构的API、Hooks
+底层：计算机组成架构  React底层架构
+```
+
+生命周期函数属于抽象程度比较高的层次，这么设计也是为了让开发者更容易上手`React`
+
+
+
+## Hooks
+
+对照公式看几个常见`hook`的工作流程：
+
+#### `useState`
+
+```javascript
+function App() {
+  const [state, updateState] = useState(0);
+  return <div onClick={() => updateState(state + 1)}></div>;
+}
+```
+
+`useState`返回值数组包含：
+
+- 保存的`state`
+
+- 改变`state`的方法`updateState`
+
+对照公式，`state`属于公式步骤2计算得出的：
+
+2. `state = reconcile(update);`
+
+此时视图还没有更新
+
+用户点击`div`触发`updateState`，对应公式步骤1:
+
+1. 用户交互产生`update`
+
+所以<u>调用`updateState`能开启底层架构的三步运行流程</u>
+
+当`reconcile`计算出`state`后就会进入第三步：
+
+3. `UI = commit(state);`
+
+最终渲染视图
+
+#### `useEffect`
+
+```javascript
+useEffect(doSomething, [xx, yy])
+```
+
+`useEffect`的回调函数`doSomething`<u>在第三步执行完成后异步调用</u>：
+
+所以在`doSomething`函数内部能获取到完成更新的视图（第二个参数`[xx, yy]`作为依赖项决定了`doSomething`是否会被调用）
+
+#### `useLayoutEffect`
+
+不同于`useEffect`在第三步执行完成后异步调用，`useLayoutEffect`<u>在第三步执行完`UI`操作后同步执行</u>
+
+#### `useRef`
+
+`useState`与`useEffect`分别在三步流程的不同步骤被触发，他们的触发时机是确定的，而这三个步骤通过`useRef`来交流
+
+`useState`作用于第一、二步，`useLayoutEffect`作用于第三步，`useEffect`作用于第三步完成后
+
+使用`useRef`，就能达到在不同步骤间共享引用类型数据的目的
+
+
+
+可以看到，`React`为底层架构三步工作流程的每一步提供了对应的`hook`，同时提供了串联这三步工作流程的`hook`
+
+开发者只需要根据业务需要，通过基础`Hooks`组装出自定义`hook`，就能在底层架构运行流程的各个时期运行逻辑
