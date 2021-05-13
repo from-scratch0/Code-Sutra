@@ -45,96 +45,46 @@ Components使UI分割成独立可复用的部分
 
 ### Function & Class Components
 
-#### 定义组件：
+#### 定义组件
 
-1. 使用JavaScript函数定义；
-
-   ```react
-   function Welcome(props) {
-       return <h1>Hello, {props.name}</h1>;
-   }
-   ```
+1. 使用JavaScript函数定义
 
 2. 使用ES6的class定义
 
-   ```react
-   class Welcome extends React.Component {
-       render() {
-           return <h1>Hello, {this.props.name}</h1>;
-       }
-   }
-   ```
 
-#### 将一个函数组件转换为类组件：
+> 将一个函数组件转换为类组件：
+>
+> 1. 创建一个ES6 class ```extends React.Component```
+>
+> 2. 添加```render()```方法，即返回React元素
+> 3. 将函数组件主体移入```render()```方法
+> 4. 用```this.props```取代```props```
 
-1. 创建一个ES6 class ```extends React.Component```
-2. 添加```render()```方法，即返回React元素
-3. 将函数组件主体移入```render()```方法
-4. 用```this.props```取代```props```
+元素可以采用用户**自定义组件**，该组件<u>必须大写字母开头</u>
 
-元素可以采用用户**自定义组件**，该组件必须大写字母开头
+当React遇见用户自定义的组件是，会将 *JSX的属性* 作为一个对象传递给组件，这个对象就是**props(properties)**
 
-当React遇见用户自定义的组件是，会将**JSX的属性**作为一个对象传递给组件，这个对象就是**props(properties)**
-
-#### 学会抽象拆分组件**Extracting Components**
-
-```react
-import React from 'react';
-import ReactDOM from 'react-dom';
-
-// 对象不是合法的React子元素
-function formatDate(date) {
-    return date.toString();
-}
-
-function Avatar(props) {
-  return (
-    <img className="Avatar"
-      src={props.user.avatarUrl}
-      alt={props.user.name}
-    />
-  );
-}
-
-function UserInfo(props) {
-    return(
-    	<div className="UserInfo">
-    		<Avatar user={props.author} />
-    		<div className="UserInfo-name">
-        		{props.user.name}
-			</div>
-    	</div>
-    );
-}
-function Comment(props) {
-  return (
-    <div className="Comment">
-      <UserInfo user={props.author} />
-      
-      <div className="Comment-text">
-        {props.text}
-      </div>
-      <div className="Comment-date">
-        {formatDate(props.date)}
-      </div>
-    </div>
-  );
-}
-
-let data = {
-    author: {
-        name: 'fs',
-        avatarURL: ''
-    },
-    text: '评论内容',
-    date: new Date();
-}
-
-// 把date中的所有属性一一传递给Comment
-ReactDOM.render(<Comment {...date} />, document.getElementByld('root'));
-```
+**Extracting Components** 学会抽象拆分组件
 
 React组件必须表现得像一个纯函数，即不能修改输入（属性props），对于相同的输入总是返回相同的结果。对于会动态变化的UI，state可以用来改变React组件的输出。
+
+#### 函数式与类组件有何不同？
+
+[函数式组件与类组件有何不同？](https://overreacted.io/zh-hans/how-are-function-components-different-from-classes/)
+
+**函数式组件捕获了渲染所用的值**（Function components capture the rendered values）
+
+类方法从 `this.props` 中读取数据：在 React 中 Props 是不可变(immutable)的，所以他们永远不会改变；然而，<u>`this`是，而且永远是，可变(mutable)的</u>；事实上，这就是类组件 `this` 存在的意义——<u>React本身会随着时间的推移而改变，以便你可以在渲染方法以及生命周期方法中得到最新的实例</u>
+
+事件处理程序“属于”一个拥有特定 props 和 state 的特定渲染；然而，调用一个回调函数读取 `this.props` 的 `timeout` 会打断这种关联。 `timeout`的回调并没有与任何一个特定的渲染“绑定”在一起，所以它“失去”了正确的 props：从 this 中读取数据的这种行为，切断了这种联系
+
+我们面对的问题是我们从`this.props`中读取数据太迟了——读取时已经不是我们所需要使用的上下文了；然而，如果我们能利用**JavaScript闭包**的话问题将迎刃而解；通常来说我们会避免使用闭包，因为它会让我们难以想象一个可能会随着时间推移而变化的变量；但是<u>在React中，`props`和`state`是不可变的</u>（或者说，在我们的强烈推荐中是不可变的），这就消除了闭包的一个主要缺陷
+
+这就意味着如果在一次特定的渲染中捕获那一次渲染所用的props或者state，他们总是会保持一致；但是看起来很奇怪：如果是在`render`方法中定义各种函数，而不是使用class的方法，那么使用类的意义在哪里？
+
+因此可以通过删除类的“包裹”来简化代码——函数式组件：`props`仍旧被捕获了 —— React将它们作为参数传递，**不同于`this`，`props`对象本身永远不会被React改变**
+
+另外，在函数式组件中，也可以拥有一个在所有的组件渲染帧中共享的可变变量，它被称为`ref`，它只是一个你可以放东西进去的盒子，甚至在视觉上，`this.something`就像是`something.current`的一个镜像，它们代表了同样的概念；默认情况下，React不会在函数式组件中为最新的`props`和`state`创造`refs`
 
 
 
@@ -382,8 +332,9 @@ React 中遵循的是单向数据流，组件的作用域相对是独立的，�
      export default MyContext;
      
      // 了解 redux 的同学会很容易理解
-     function reducer(state, action) {
-       switch(action.type){
+     function reducer(state, action) {  
+       const { type , title  } = action
+       switch(type){
          case 'ADD':
            return {
              // 利用解构来实现数据合并以及添加数据
@@ -392,7 +343,7 @@ React 中遵循的是单向数据流，组件的作用域相对是独立的，�
                ...state.listData,
                {
                  id: Math.floor(Math.random() * 1000),
-                 title: action.title
+                 title: title
                }
              ]
            }
@@ -464,9 +415,8 @@ React 中遵循的是单向数据流，组件的作用域相对是独立的，�
                  
      const Add = () => {
        const { title, setTitle } = useState('')
-       // useContext 接收一个 context 对象并返回该 context 的当前值
-       // 当前的 context 值由上层组件中距离当前组件最近的 <Provider> 的 value 决定
-       const context = useContext(MyContext)
+       // 变化在这里，从 context 中解构 dispatch
+       const { dispatch } = useContext(MyContext)
      
        const inputChange = (e) => {
          setTitle(e.target.value)
@@ -475,7 +425,10 @@ React 中遵循的是单向数据流，组件的作用域相对是独立的，�
        return (
          <>
            <input type="text" value={title} onChange={inputChange} />
-           <button onClick={() => MyContext.addList(title)}>添加</button>
+           <button onClick={() => dispatch({
+             type: 'ADD',
+             title: title
+           })}>添加</button>
          </>
        )   
      };
@@ -701,6 +654,22 @@ class Form extends React.Component {
 
 
 
+## 高级指引
+
+#### 高阶组件
+
+高阶组件（HOC）是 React 中用于复用组件逻辑的一种高级技巧。HOC 自身不是 React API 的一部分，它是一种基于 React 的组合特性而形成的设计模式。
+
+具体而言，**高阶组件是参数为组件，返回值为新组件的函数。**
+
+```javascript
+const EnhancedComponent = higherOrderComponent(WrappedComponent);
+```
+
+组件是将 props 转换为 UI，而高阶组件是将组件转换为另一个组件。
+
+
+
 ## 核心概念
 
 用公式概括`React`：
@@ -740,11 +709,43 @@ const UI = commit(state);
 
 
 
-## Hooks
+## Hook
+
+#### 引入Hook动机
+
+react-hooks是react16.8以后，react新增的钩子API，目的是增加代码的可复用性，逻辑性，弥补无状态组件没有生命周期，没有数据管理状态state的缺陷；react-hooks思想和初衷，也是把组件，颗粒化，单元化，形成独立的渲染环境，减少渲染次数，优化性能
+
+[Hook简介](https://zh-hans.reactjs.org/docs/hooks-intro.html)
+
+1. **Hook 使你在无需修改组件结构的情况下复用状态逻辑**
+
+   React 没有提供将可复用性行为“附加”到组件的途径；如 [render props](https://zh-hans.reactjs.org/docs/render-props.html) 和 [高阶组件](https://zh-hans.reactjs.org/docs/higher-order-components.html)等方案需要重新组织组件结构，会很麻烦，使代码难以理解；在 `React DevTools` 中观察 React 应用会发现由 providers，consumers，高阶组件，render props 等其他抽象层组成的组件会形成“嵌套地狱”
+
+   可以使用 Hook 从组件中提取状态逻辑，使得这些逻辑可以单独测试并复用：<u>Hook 使你在无需修改组件结构的情况下复用状态逻辑</u>，可以让代码的逻辑性更强，可以抽离公共的方法，公共组件，这使得在组件间或社区内共享 Hook 变得更便捷
+
+2. **Hook 将组件中相互关联的部分拆分成更小的函数**（比如设置订阅或请求数据）
+
+   组件常常会被状态逻辑和副作用充斥；每个生命周期常常包含一些不相关的逻辑：例如，组件常常在 `componentDidMount` 和 `componentDidUpdate` 中获取数据；但是，同一个 `componentDidMount` 中可能也包含很多其它的逻辑，如设置事件监听，而之后需在 `componentWillUnmount` 中清除；相互关联且需要对照修改的代码被进行了拆分，而完全不相关的代码却在同一个方法中组合在一起；如此很容易产生 bug，并且导致逻辑不一致
+
+   在多数情况下，不可能将组件拆分为更小的粒度，因为状态逻辑无处不在；这也给测试带来了一定挑战；同时，这也是很多人将 React 与状态管理库结合使用的原因之一；但是，这往往会引入了很多抽象概念，需要你在不同的文件之间来回切换，使得复用变得更加困难
+
+   为了解决这个问题，<u>Hook 将组件中相互关联的部分拆分成更小的函数（比如设置订阅或请求数据）</u>，而并非强制按照生命周期划分。还可以使用 reducer 来管理组件的内部状态，使其更加可预测
+
+3. **Hook 使你在非 class 的情况下可以使用更多的 React 特性**
+
+   class 是学习 React 的一大屏障，你必须去理解 JavaScript 中 `this` 的工作方式，这与其他语言存在巨大差异。还不能忘记绑定事件处理器。没有稳定的[语法提案](https://babeljs.io/docs/en/babel-plugin-transform-class-properties/)，这些代码非常冗余
+
+   另外，使用 class 组件会无意中鼓励开发者使用一些让优化措施无效的方案；class 也给目前的工具带来了一些问题；例如，class 不能很好的压缩，并且会使热重载出现不稳定的情况
+
+   为了解决这些问题，<u>Hook 使你在非 class 的情况下可以使用更多的 React 特性</u>； 从概念上讲，React 组件一直更像是函数，而 Hook 则拥抱了函数，同时也没有牺牲 React 的精神原则；Hook 提供了问题的解决方案，无需学习复杂的函数式或响应式编程技术
+
+
 
 对照公式看几个常见`hook`的工作流程：
 
 #### `useState`
+
+*数据存储，派发更新*
 
 ```javascript
 function App() {
@@ -752,6 +753,8 @@ function App() {
   return <div onClick={() => updateState(state + 1)}></div>;
 }
 ```
+
+`useState`的参数可以是一个具体的值，也可以是一个函数用于判断复杂的逻辑，函数返回作为初始值
 
 `useState`返回值数组包含：
 
@@ -765,11 +768,11 @@ function App() {
 
 此时视图还没有更新
 
-用户点击`div`触发`updateState`，对应公式步骤1:
+用户触发`updateState`，对应公式步骤1:
 
 1. 用户交互产生`update`
 
-所以<u>调用`updateState`能开启底层架构的三步运行流程</u>
+所以**调用`updateState`能开启底层架构的三步运行流程**
 
 当`reconcile`计算出`state`后就会进入第三步：
 
@@ -777,21 +780,33 @@ function App() {
 
 最终渲染视图
 
+`useState` 和 `useReduce`作为能够触发组件重新渲染的hooks，`useState`派发更新函数的执行，就会让整个function组件从头到尾执行一次，所以需要配合`useMemo`，`usecallback`等`api`使用
+
 #### `useEffect`
+
+*组件更新副作用钩子*
 
 ```javascript
 useEffect(doSomething, [xx, yy])
 ```
 
-`useEffect`的回调函数`doSomething`<u>在第三步执行完成后异步调用</u>：
+`useEffect`的回调函数`doSomething`**在第三步执行完成后异步调用**，所以在`doSomething`函数内部能获取到完成更新的视图
 
-所以在`doSomething`函数内部能获取到完成更新的视图（第二个参数`[xx, yy]`作为依赖项决定了`doSomething`是否会被调用）
+如果需要在组件初次渲染的时候请求数据，那么`useEffect`可以充当class组件中的 <u>`componentDidMount`</u>；但是如果不给`useEffect`执行加入限定条件，函数组件每一次更新都会触发effect ，那么也就说明每一次state更新，或是props的更新都会触发`useEffect`执行，此时的effect又充当了 <u>`componentDidUpdate`</u>和 <u>`componentwillreceiveprops`</u>
+
+所以说合理的用`useEffect`就要<u>给effect加入限定执行的条件</u>，也就是`useEffect`的第二个参数，是一个数组，用来收集多个限制条件；这里的限定条件也可以说是上一次`useeffect`更新收集的某些记录数据变化的记忆，在新的一轮更新中`useeffect`会拿出之前的记忆值和当前值做对比，如果发生了变化就执行新的一轮`useEffect`的副作用函数；如果此时数组为空`[]`，证明函数只有在初始化的时候执行一次相当于`componentDidMount`
+
+如果需要在组件销毁的阶段，做一些取消`dom`监听，清除定时器等操作，可以在`useEffect`函数第一个参数，结尾返回（`return`）一个函数，用于清除这些副作用，相当于 <u>`componentWillUnmount`</u>
 
 #### `useLayoutEffect`
 
-不同于`useEffect`在第三步执行完成后异步调用，`useLayoutEffect`<u>在第三步执行完`UI`操作后同步执行</u>
+不同于`useEffect`在第三步执行完成后异步调用，`useLayoutEffect`**在第三步执行完`UI`操作后同步执行**
+
+所以说`useLayoutEffect`代码可能会阻塞浏览器的绘制；如果在`useEffect` 重新请求数据，渲染视图过程中，肯定会造成画面闪动的效果；而如果用`useLayoutEffect`，回调函数的代码就会阻塞浏览器绘制，肯定会引起画面卡顿等效果；具体要用 `useLayoutEffect` 还是` useEffect`，要看实际项目的情况，大部分的情况 `useEffect` 都可以满足的
 
 #### `useRef`
+
+*获取元素 ，缓存数据*
 
 `useState`与`useEffect`分别在三步流程的不同步骤被触发，他们的触发时机是确定的，而这三个步骤通过`useRef`来交流
 
@@ -799,8 +814,33 @@ useEffect(doSomething, [xx, yy])
 
 使用`useRef`，就能达到在不同步骤间共享引用类型数据的目的
 
-
-
 可以看到，`React`为底层架构三步工作流程的每一步提供了对应的`hook`，同时提供了串联这三步工作流程的`hook`
 
 开发者只需要根据业务需要，通过基础`Hooks`组装出自定义`hook`，就能在底层架构运行流程的各个时期运行逻辑
+
+#### `userContent`
+
+*自由获取context*
+
+见<数据流（组件通信）>
+
+#### `useReducer`
+
+*无状态组件中的redux*
+
+`useReducer`的2个参数
+
+- 一个函数，我们可以认为它就是一个`reducer` ，`reducer`的参数就是常规`reducer`里面的state和action，返回改变后的`state`
+- `state`的初始值
+
+`useReducer`返回值数组包含：
+
+- 更新之后`state`的值
+
+- 派发更新的`dispatch`函数：dispatch 的触发会触发组件的更新，这里能够促使组件重新渲染的一个是`useState`派发更新函数，另一个就 `useReducer`中的`dispatch`
+
+
+
+## 参考
+
+[函数式组件与类组件有何不同？](https://overreacted.io/zh-hans/how-are-function-components-different-from-classes/)
